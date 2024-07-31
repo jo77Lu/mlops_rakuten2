@@ -1,12 +1,17 @@
+import os
 import pickle
+import pandas as pd
+from sklearn.model_selection import train_test_split
 import tensorflow as tf
-from tensorflow.keras.applications import VGG16
+from tensorflow.keras.applications import VGG16, preprocess_input
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Dense, Flatten
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import EarlyStopping
 from sklearn.metrics import classification_report
+from sklearn.preprocessing import LabelEncoder
+from tensorflow.keras.utils import to_categorical
 
 class VGG16Model:
     def __init__(self, num_classes):
@@ -15,6 +20,46 @@ class VGG16Model:
         """
         self.num_classes = num_classes
         self.model = self._build_model()
+    
+    def preprocess_data(images_path = "../data/raw/images/image_train/", label_file="../data/raw/Y_train_CVw08PX.csv"):
+
+
+        # Charger le fichier CSV
+        df = pd.read_csv(label_file)
+
+        # Ajouter le chemin complet aux fichiers d'images
+        df['image_path'] = df['image_name'].apply(lambda x: os.path.join(images_path, x))
+
+        # Séparer les images et les labels
+        image_paths = df['image_path'].values
+        labels = df['prdtypecode'].values
+
+        # Convertir les labels en vecteurs de catégories
+        label_encoder = LabelEncoder()
+        labels = label_encoder.fit_transform(labels)
+        labels = to_categorical(labels)
+
+        # Diviser les données en ensembles d'entraînement et de validation
+        # train_paths, val_paths, train_labels, val_labels = train_test_split(image_paths, labels, test_size=0.2, random_state=42)
+
+        return image_paths, labels
+    
+    def convert_to_dataset(self, paths, labels):
+    
+        dataset = tf.data.Dataset.from_tensor_slices((paths, labels))
+        dataset = dataset.map(self.preprocess_image).batch(32).prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
+
+        return dataset 
+
+    # Générateur de données
+    def preprocess_image(self, image_path, label):
+        image = tf.io.read_file(image_path)
+        image = tf.image.decode_jpeg(image, channels=3)
+        image = tf.image.resize(image, (224, 224))
+        image = preprocess_input(image)  # Utiliser la fonction de prétraitement de VGG16
+        return image, label
+
+
 
     def _build_model(self):
         """
