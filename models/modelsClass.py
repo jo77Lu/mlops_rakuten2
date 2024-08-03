@@ -1,58 +1,7 @@
 import pickle
-import modelsClass
 import pandas as pd
 import os
 from sklearn.model_selection import train_test_split
-
-
-if __name__ == "__main__":
-
-    # fileLabels = "../data/raw/Y_train_CVw08PX.csv"
-    # pathImgs = "../data/raw/images/image_train/"
-    # dataFile = "../data/raw/X_train_update.csv"
-
-    # # Déterminer le chemin absolu du fichier actuel (main.py)
-    # current_dir = os.path.dirname(__file__)
-    # df = pd.read_csv(f'{current_dir}/{fileLabels}')
-
-    # print(df.head())
-    # print(df.columns[1])
-
-    # # model = modelsClass.VGG16Model(27)
-    #     # Créez une instance de votre modèle
-    # model = modelsClass.VGG16Model(input_shape=(224, 224, 3), num_classes=27, include_top=False)
-
-    # print(f'{current_dir}/{pathImgs}')
-
-    # img_paths, labels = model.preprocess_data(label_file=f'{current_dir}/{fileLabels}', images_path = f'{current_dir}/{pathImgs}', data_file=f'{current_dir}/{dataFile}')
-
-    # X_train, X_test, y_train, y_test = train_test_split(img_paths, labels, test_size=0.33, random_state=42)
-
-    # dataset_train = model.convert_to_dataset(X_train, y_train)
-    # dataset_val = model.convert_to_dataset(X_test, y_test)
-
-
-
-
-    # # Compilez le modèle
-    # model.compile_model(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
-
-    # # Affichez le résumé du modèle
-    # model.summary()
-
-    #     # Entraînez le modèle
-    # model.train(train_data=dataset_train, epochs=10, validation_data=dataset_val)#, batch_size=32)
-
-    # # Évaluez le modèle
-    # test_loss, test_accuracy = model.evaluate(dataset_val)
-    # print(f'Test accuracy: {test_accuracy}')
-
-    #################################################
-    ##################################################
-
-
-
-    import os
 import pandas as pd
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
@@ -62,6 +11,8 @@ from keras.layers import Dense, Flatten, Dropout
 from keras.optimizers import Adam
 from keras.utils import to_categorical
 from sklearn.preprocessing import LabelEncoder
+   
+
 
 class VGG16Model:
     def preprocess_data(self, images_path, label_file, data_file, isReduced = False):
