@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from airflow import DAG 
 from airflow.utils.dates import days_ago
 from airflow.operators.python import PythonOperator
+<<<<<<< HEAD
 from airflow.sensors.filesystem import FileSensor
 from airflow.models import XCom
 from sklearn.model_selection import train_test_split
@@ -60,6 +61,7 @@ def build_and_test_vgg16():
 # DAG
 
 with DAG(
+<<<<<<< HEAD
     dag_id='Project_Rakuten2',
     description='My first DAG created with DataScientest',
     tags=['project', 'datascientest', 'Rakuten2'],
@@ -72,6 +74,7 @@ with DAG(
 ) as my_dag:
 
     # Définition de la fonction à exécuter
+<<<<<<< HEAD
     my_sensor = FileSensor(
         task_id="check_file",
         fs_conn_id="my_filesystem_connection",
