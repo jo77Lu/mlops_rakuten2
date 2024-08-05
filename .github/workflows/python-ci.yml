@@ -22,7 +22,7 @@ jobs:
 
     - name: Run Flake8
       run: |
-        flake8  --verbose --show-source --statistics.
+        flake8  --verbose --show-source
       continue-on-error: true
 
     - name: Run Black
