@@ -21,8 +21,8 @@ class VGG16Model:
         df_data = pd.read_csv(data_file)
 
         if isReduced:
-            df = df.iloc[0:500]
-            df_data = df_data.iloc[0:500]
+            df = df.iloc[0:100]
+            df_data = df_data.iloc[0:100]
 
         # Ajouter le chemin complet aux fichiers d'images
         df_data['image_path'] = df_data.apply(lambda row: os.path.join(images_path, f"image_{row['imageid']}_product_{row['productid']}.jpg"), axis=1)
@@ -79,7 +79,7 @@ class VGG16Model:
     def summary(self):
         self.model.summary()
 
-    def train(self, train_data, validation_data, epochs=10):
+    def train(self, train_data, validation_data, epochs=1):
         self.model.fit(train_data, epochs=epochs, validation_data=validation_data)
 
     def evaluate(self, test_data):
@@ -132,7 +132,7 @@ if __name__ == "__main__":
     model.summary()
 
     # Entraînez le modèle
-    model.train(train_data=dataset_train, validation_data=dataset_val, epochs=10)
+    model.train(train_data=dataset_train, validation_data=dataset_val, epochs=3)
 
     # Évaluez le modèle
     test_loss, test_accuracy = model.evaluate(dataset_val)
