@@ -1,6 +1,9 @@
+
 import requests
 import json
 import os
+
+import sys
 import pandas as pd
 from datetime import datetime, timedelta
 
@@ -15,49 +18,61 @@ from airflow.utils.dates import days_ago
 from airflow.operators.python import PythonOperator
 from airflow.sensors.filesystem import FileSensor
 from airflow.models import XCom
+from sklearn.model_selection import train_test_split
+
+sys.path.append(os.path.abspath("/app/models"))
+
+from models.modelsClass import VGG16Model
 
 
 rawPath="/app/raw_files"
 
 
-def prepare_csv_file(imagesPath, filename, n_files=None):
+def prepare_csv_file(imagesPath, dataFile, labelFile, n_files=None):
     
-    dfs = []
+    # Charger les fichiers CSV
+    df = pd.read_csv(labelFile)
+    df_data = pd.read_csv(dataFile)
 
 
-    with open(filename, 'r') as file:
-        data_temp = json.load(file)
-        print(type(data_temp))
-        print(data_temp)
-    if isinstance(data_temp,list):
-        for data_city in data_temp:
-            print(type(data_city))
-            print(data_city)
-            dfs.append(
-                {
-                    'temperature': data_city['main']['temp'],
-                    'city': data_city['name'],
-                    'pression': data_city['main']['pressure'],
-                    
-                }
-            )
-    else:
-        dfs.append(
-            {   
-                'temperature': data_temp['main']['temp'],
-                'city': data_temp['name'],
-                'pression': data_temp['main']['pressure'],
-                
-            }   
-        ) 
+    df = df.iloc[0:100]
+    df_data = df_data.iloc[0:100]
 
-    df = pd.DataFrame(dfs)
+    # Ajouter le chemin complet aux fichiers d'images
+    df_data['image_path'] = df_data.apply(lambda row: os.path.join(imagesPath, f"image_{row['imageid']}_product_{row['productid']}.jpg"), axis=1)
 
-    print('\n', df.head(10))
+    # Séparer les images et les labels
+    image_paths = df_data['image_path'].values
+    labels = df['prdtypecode'].values
 
-    df.to_csv(os.path.join('/app/clean_data', filename), index=False)
+    df_vgg16 = pd.concat([df['prdtypecode'], df_data['image_path']],axis=1)
+
+    df_vgg16.to_csv(os.path.join('/app/clean', 'silverData_vgg16.csv'), index=False)
 
 
+def build_and_test_vgg16():
+    model = VGG16Model(input_shape=(224, 224, 3), num_classes=27, include_top=False)
+
+    df = pd.read_csv('/app/clean/silverData_vgg16.csv')
+
+    X_train, X_test, y_train, y_test = train_test_split(df['image_path'], df['prdtypecode'], test_size=0.33, random_state=42)
+
+    dataset_train = model.convert_to_dataset(X_train, y_train)
+    dataset_val = model.convert_to_dataset(X_test, y_test)
+
+    # Compilez le modèle
+    model.compile_model()
+
+
+    # Affichez le résumé du modèle
+    model.summary()
+
+    # Entraînez le modèle
+    model.train(train_data=dataset_train, validation_data=dataset_val, epochs=3)
+
+    # Évaluez le modèle
+    test_loss, test_accuracy = model.evaluate(dataset_val)
+    print(f'Test accuracy: {test_accuracy}')
 # # MACHINE LEARNING:
 # def compute_model_score(model,path_to_data='/app/clean_data/fulldata.csv', **kwargs):
 #     X, y = prepare_data(path_to_data)
@@ -186,9 +201,13 @@ with DAG(
     prepare_file = PythonOperator(
         task_id='Prepare_CSV_File',
         python_callable=prepare_csv_file,
-        op_kwargs = {"imagesPath" : "app/rawData/images/image_train", "dataFile" : "app/rawData/X_train_update.csv", "labelFile" : "Y_train_CVw08PX.csv" }
+        op_kwargs = {"imagesPath" : "../data/raw/images/image_train/", "dataFile" : "/app/rawData/X_train_update.csv", "labelFile" : "/app/rawData/Y_train_CVw08PX.csv" }
     )
 
+    vgg16_build_and_test = PythonOperator(
+        task_id='VGG16_build_and_test',
+        python_callable=build_and_test_vgg16,
+    )
     # transform_top_20 = PythonOperator(
     #     task_id='Transform_top_20',
     #     python_callable= transform_data_into_csv,
@@ -227,7 +246,7 @@ with DAG(
     # )
 
     # Links:
-    my_sensor >> prepare_file
+    my_sensor >> prepare_file >> vgg16_build_and_test
     # get_raw_data >> [transform_top_20, transform_all]
     # transform_all >> [compute_score_LinReg, compute_score_DecTree, compute_score_RandFrst]
     # compute_score_LinReg >> select_and_train
