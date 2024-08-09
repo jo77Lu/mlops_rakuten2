@@ -40,6 +40,10 @@ def valid_user():
     return {"username":"", "password":""}
 
 @pytest.fixture
+def valid_product():
+    return {}
+
+@pytest.fixture
 def token():
     response = client.post(
             "/auth/login",
@@ -101,3 +105,49 @@ class TestProductManagement:
             json={}
         )
         assert response.status.code == 201
+        assert 'product_id' in response.json() and 'status' in response.json()
+        
+    def test_add_product_missing_images(app):
+        response = client.post(
+            "/products",
+            headers={"Authorization": f"Bearer {token}"},
+            json={}
+        )
+        assert response.status.code == 401
+        assert response.json()["detail"] == "Images are mandatory"
+        
+    def test_add_product_incorrect_image_path(app):
+        response = client.post(
+            "/products",
+            headers={"Authorization": f"Bearer {token}"},
+            json={}
+        )
+        assert response.status.code == 401
+        assert response.json()["detail"] == "Incorrect image path."
+        
+    def test_add_product_missing_description(app):
+        response = client.post(
+            "/products",
+            headers={"Authorization": f"Bearer {token}"},
+            json={}
+        )
+        assert response.status.code == 401
+        assert response.json()["detail"] == "Description is mandatory."
+        
+    def test_add_product_long_description(app):
+        response = client.post(
+            "/products",
+            headers={"Authorization": f"Bearer {token}"},
+            json={}
+        )
+        assert response.status.code == 401
+        assert response.json()["detail"] == "Number of characters exceeded in description."
+        
+    def test_get_product(app):
+        response = client.get(
+            "/products/",
+            headers={"Authorization": f"Bearer {token}"}
+        )
+        
+        
+class 
