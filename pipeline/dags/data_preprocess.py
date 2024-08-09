@@ -35,8 +35,8 @@ def prepare_csv_file(imagesPath, dataFile, labelFile, n_files=None):
     df_data = pd.read_csv(dataFile)
 
 
-    df = df.iloc[0:100]
-    df_data = df_data.iloc[0:100]
+    df = df.iloc[0:50]
+    df_data = df_data.iloc[0:50]
 
     # Ajouter le chemin complet aux fichiers d'images
     df_data['image_path'] = df_data.apply(lambda row: os.path.join(imagesPath, f"image_{row['imageid']}_product_{row['productid']}.jpg"), axis=1)
@@ -57,8 +57,15 @@ def build_and_test_vgg16():
 
     X_train, X_test, y_train, y_test = train_test_split(df['image_path'], df['prdtypecode'], test_size=0.33, random_state=42)
 
+
+    for image_path in X_train:
+        if not os.path.exists(image_path):
+            print(f"Image not found: {image_path}")
+
     dataset_train = model.convert_to_dataset(X_train, y_train)
     dataset_val = model.convert_to_dataset(X_test, y_test)
+
+    print(X_train['image_path'].loc[0])
 
     # Compilez le modèle
     model.compile_model()
@@ -67,6 +74,7 @@ def build_and_test_vgg16():
     # Affichez le résumé du modèle
     model.summary()
 
+    print(len(os.listdir("/app/rawData/images/image_train/")))
     # Entraînez le modèle
     model.train(train_data=dataset_train, validation_data=dataset_val, epochs=3)
 
@@ -207,6 +215,7 @@ with DAG(
     vgg16_build_and_test = PythonOperator(
         task_id='VGG16_build_and_test',
         python_callable=build_and_test_vgg16,
+        execution_timeout=timedelta(minutes=3),
     )
     # transform_top_20 = PythonOperator(
     #     task_id='Transform_top_20',
