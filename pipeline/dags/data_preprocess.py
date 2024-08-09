@@ -42,12 +42,15 @@ def build_and_test_vgg16():
     dataset_train = model.convert_to_dataset(X_train, y_train)
     dataset_val = model.convert_to_dataset(X_test, y_test)
 
+    print(X_train['image_path'].loc[0])
+
     # Compilez le modèle
     model.compile_model()
 
     # Affichez le résumé du modèle
     model.summary()
 
+    print(len(os.listdir("/app/rawData/images/image_train/")))
     # Entraînez le modèle
     model.train(train_data=dataset_train, validation_data=dataset_val, epochs=1)
 
