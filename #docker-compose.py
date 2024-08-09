@@ -1,4 +1,7 @@
+<<<<<<< Updated upstream
 #docker-compose
+=======
+>>>>>>> Stashed changes
 version: '3.8'
 
 services:
