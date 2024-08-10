@@ -145,7 +145,7 @@ class TestProductManagement:
         
     def test_get_product(app):
         response = client.get(
-            "/products/",
+            f"/products/",
             headers={"Authorization": f"Bearer {token}"}
         )
         

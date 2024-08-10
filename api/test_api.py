@@ -1,95 +1,210 @@
-from fastapi import FastAPI, HTTPException, status
-from pydantic import BaseModel
-from sqlalchemy import create_engine, Column, Integer, String
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+import pytest
+from httpx import Client
+from fastapi import status
+from app import app, User, Product, SessionLocal
 
-app = FastAPI()
-
-DATABASE_URL = "sqlite:///./test.db"
-Base = declarative_base()
-engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-class User(Base):
-    __tablename__ = 'users'
-    id = Column(Integer, primary_key=True, index=True)
-    username = Column(String, unique=True, index=True)
-    password = Column(String)
-    role = Column(String)
-
-class Product(Base):
-    __tablename__ = 'products'
-    id = Column(Integer, primary_key=True, index=True)
-    images = Column(String)
-    description = Column(String)
-    category = Column(String)
-    confidence = Column(String)
-
-Base.metadata.create_all(bind=engine)
-
-class ProductCreate(BaseModel):
-    images: str
-    description: str
-
-class ProductUpdate(BaseModel):
-    images: str = None
-    description: str = None
-
-@app.post('/products', status_code=status.HTTP_201_CREATED)
-def create_product(product: ProductCreate):
+@pytest.fixture(scope="function")
+def db():
     db = SessionLocal()
-    db_product = Product(images=product.images, description=product.description)
-    db.add(db_product)
+    yield db
+    db.close()
+
+@pytest.fixture(scope="function")
+def create_user(db):
+    def _create_user(username, password, role="user"):
+        user = User(username=username, password=password, role=role)
+        db.add(user)
+        db.commit()
+        return user
+    return _create_user
+
+@pytest.fixture(scope="function")
+def client():
+    with Client(app=app, base_url="http://testserver") as client:
+        yield client
+
+def test_login_success(client, create_user):
+    create_user("testuser", "testpass")
+    response = client.post('/auth/login', json={"username": "testuser", "password": "testpass"})
+    assert response.status_code == status.HTTP_200_OK
+    assert "token" in response.json()
+
+def test_login_failure(client, create_user):
+    create_user("testuser", "testpass")
+    response = client.post('/auth/login', json={"username": "testuser", "password": "wrongpass"})
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+    assert response.json() == {"detail": "Invalid username or password"}
+
+def test_login_with_invalid_input(client):
+    response = client.post('/auth/login', json={"username": "", "password": ""})
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+    assert response.json() == {"detail": "Invalid username or password"}
+
+def test_login_with_missing_fields(client):
+    response = client.post('/auth/login', json={"username": "testuser"})
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+def test_logout_success(client, create_user):
+    create_user("testuser", "testpass")
+    login_response = client.post('/auth/login', json={"username": "testuser", "password": "testpass"})
+    token = login_response.json()["token"]
+
+    response = client.post('/auth/logout', headers={"Authorization": f"Bearer {token}"})
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == {"message": "Successfully logged out"}
+
+def test_logout_invalid_token(client):
+    response = client.post('/auth/logout', headers={"Authorization": f"Bearer dummyToken"})
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+def test_logout_without_token(client):
+    response = client.post('/auth/logout')
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+def test_create_product_success(client, create_user):
+    create_user("testuser", "testpass")
+    login_response = client.post('/auth/login', json={"username": "testuser", "password": "testpass"})
+    token = login_response.json()["token"]
+
+    response = client.post('/products', 
+                           json={"images": "image_data", "description": "New product"},
+                           headers={"Authorization": f"Bearer {token}"})
+    assert response.status_code == status.HTTP_201_CREATED
+    assert "product_id" in response.json()
+
+def test_create_product_missing_fields(client, create_user):
+    create_user("testuser", "testpass")
+    login_response = client.post('/auth/login', json={"username": "testuser", "password": "testpass"})
+    token = login_response.json()["token"]
+
+    response = client.post('/products', 
+                           json={"images": "image_data"},
+                           headers={"Authorization": f"Bearer {token}"})
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+def test_create_product_empty_description(client, create_user):
+    create_user("testuser", "testpass")
+    login_response = client.post('/auth/login', json={"username": "testuser", "password": "testpass"})
+    token = login_response.json()["token"]
+
+    response = client.post('/products', 
+                           json={"images": "image_data", "description": ""},
+                           headers={"Authorization": f"Bearer {token}"})
+    assert response.status_code == status.HTTP_201_CREATED
+    assert "product_id" in response.json()
+
+def test_get_product_success(client, create_user, db):
+    user = create_user("testuser", "testpass")
+    product = Product(images="image_data", description="New product")
+    db.add(product)
     db.commit()
-    db.refresh(db_product)
-    return {"product_id": db_product.id, "status": "Product created"}
 
-@app.get('/products/{product_id}')
-def get_product(product_id: int):
-    db = SessionLocal()
-    db_product = db.query(Product).filter(Product.id == product_id).first()
-    if not db_product:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
-    return db_product
+    login_response = client.post('/auth/login', json={"username": user.username, "password": user.password})
+    token = login_response.json()["token"]
 
-@app.put('/products/{product_id}')
-def update_product(product_id: int, product: ProductUpdate):
-    db = SessionLocal()
-    db_product = db.query(Product).filter(Product.id == product_id).first()
-    if not db_product:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
+    response = client.get(f'/products/{product.id}', headers={"Authorization": f"Bearer {token}"})
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["description"] == "New product"
 
-    if product.images:
-        db_product.images = product.images
-    if product.description:
-        db_product.description = product.description
-    
+def test_get_product_not_found(client, create_user):
+    create_user("testuser", "testpass")
+    login_response = client.post('/auth/login', json={"username": "testuser", "password": "testpass"})
+    token = login_response.json()["token"]
+
+    response = client.get('/products/9999', headers={"Authorization": f"Bearer {token}"})
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+    assert response.json() == {"detail": "Product not found"}
+
+def test_update_product_success(client, create_user, db):
+    user = create_user("testuser", "testpass")
+    product = Product(images="image_data", description="New product")
+    db.add(product)
     db.commit()
-    return {"status": "Product updated"}
 
-@app.post('/classify')
-def classify_product(product_id: int):
-    db = SessionLocal()
-    db_product = db.query(Product).filter(Product.id == product_id).first()
-    if not db_product:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
+    login_response = client.post('/auth/login', json={"username": user.username, "password": user.password})
+    token = login_response.json()["token"]
 
-    # Dummy classification logic
-    db_product.category = "dummy_category"
-    db_product.confidence = "0.9"
+    response = client.put(f'/products/{product.id}', 
+                          json={"description": "Updated description"},
+                          headers={"Authorization": f"Bearer {token}"})
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == {"status": "Product updated"}
+
+def test_update_product_not_found(client, create_user):
+    create_user("testuser", "testpass")
+    login_response = client.post('/auth/login', json={"username": "testuser", "password": "testpass"})
+    token = login_response.json()["token"]
+
+    response = client.put('/products/9999', 
+                          json={"description": "Updated description"},
+                          headers={"Authorization": f"Bearer {token}"})
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+    assert response.json() == {"detail": "Product not found"}
+
+def test_update_product_no_fields(client, create_user, db):
+    user = create_user("testuser", "testpass")
+    product = Product(images="image_data", description="New product")
+    db.add(product)
     db.commit()
-    return {"product_id": db_product.id, "category": db_product.category, "confidence": db_product.confidence}
 
-@app.get('/logs')
-def get_logs(start_date: str, end_date: str):
-    # Dummy log retrieval
-    logs = [
-        {"date": "2023-01-01", "log": "Log entry 1"},
-        {"date": "2023-01-02", "log": "Log entry 2"},
-    ]
-    return logs
+    login_response = client.post('/auth/login', json={"username": user.username, "password": user.password})
+    token = login_response.json()["token"]
 
-if __name__ == '__main__':
-    import uvicorn
-    uvicorn.run(app, host='0.0.0.0', port=8000)
+    response = client.put(f'/products/{product.id}', 
+                          json={},
+                          headers={"Authorization": f"Bearer {token}"})
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == {"status": "Product updated"}
+
+def test_classify_product_success(client, create_user, db):
+    user = create_user("testuser", "testpass")
+    product = Product(images="image_data", description="New product")
+    db.add(product)
+    db.commit()
+
+    login_response = client.post('/auth/login', json={"username": user.username, "password": user.password})
+    token = login_response.json()["token"]
+
+    response = client.post('/classify', json={"product_id": product.id}, headers={"Authorization": f"Bearer {token}"})
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["category"] == "dummy_category"
+    assert response.json()["confidence"] == "0.9"
+
+def test_classify_product_not_found(client, create_user):
+    create_user("testuser", "testpass")
+    login_response = client.post('/auth/login', json={"username": "testuser", "password": "testpass"})
+    token = login_response.json()["token"]
+
+    response = client.post('/classify', json={"product_id": 9999}, headers={"Authorization": f"Bearer {token}"})
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+    assert response.json() == {"detail": "Product not found"}
+
+def test_get_logs_success(client, create_user):
+    create_user("testuser", "testpass")
+    login_response = client.post('/auth/login', json={"username": "testuser", "password": "testpass"})
+    token = login_response.json()["token"]
+
+    response = client.get('/logs?start_date=2023-01-01&end_date=2023-01-02', 
+                          headers={"Authorization": f"Bearer {token}"})
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()) > 0
+
+def test_get_logs_without_dates(client, create_user):
+    create_user("testuser", "testpass")
+    login_response = client.post('/auth/login', json={"username": "testuser", "password": "testpass"})
+    token = login_response.json()["token"]
+
+    response = client.get('/logs', headers={"Authorization": f"Bearer {token}"})
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+def test_login_performance(client, create_user):
+    create_user("testuser", "testpass")
+
+    import time
+    start_time = time.time()
+
+    response = client.post('/auth/login', json={"username": "testuser", "password": "testpass"})
+    assert response.status_code == status.HTTP_200_OK
+
+    elapsed_time = time.time() - start_time
+    assert elapsed_time < 0.5  # Example threshold
