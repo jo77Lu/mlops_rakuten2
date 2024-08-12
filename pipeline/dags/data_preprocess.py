@@ -33,7 +33,6 @@ def build_and_test_vgg16():
 
     X_train, X_test, y_train, y_test = train_test_split(df['image_path'], df['label'], test_size=0.33, random_state=42)
 
-    print(len(X_train))
 
     for image_path in X_train:
         if not os.path.exists(image_path):
@@ -55,6 +54,28 @@ def build_and_test_vgg16():
     test_loss, test_accuracy = model.evaluate(dataset_val)
     print(f'Test accuracy: {test_accuracy}')
 
+    model.save_model("/app/models/candidate_vgg16.h5")
+
+def load_gold_and_test_vgg16(modelPath):
+    model = VGG16Model(input_shape=(224, 224, 3), num_classes=27, include_top=False)
+
+    model.load_model(modelPath)
+
+    df = pd.read_csv('/app/clean/silverData_vgg16.csv')
+
+    X_train, X_test, y_train, y_test = train_test_split(df['image_path'], df['label'], test_size=0.33, random_state=42)
+
+    dataset_val = model.convert_to_dataset(X_test, y_test)
+
+    # Compilez le modèle
+    model.compile_model()
+
+    # Affichez le résumé du modèle
+    model.summary()
+
+    # Évaluez le modèle
+    _, test_accuracy = model.evaluate(dataset_val)
+    print(f'Test accuracy: {test_accuracy}')
 
 #################################
 # DAG
@@ -93,6 +114,21 @@ with DAG(
         execution_timeout=timedelta(minutes=3),
     )
 
+    vgg16_load_gold_and_test = PythonOperator(
+        task_id='VGG16_Gold_test',
+        python_callable=load_gold_and_test_vgg16,
+        op_kwargs = {"modelPath" : "/app/models/gold_vgg16.h5"},
+        execution_timeout=timedelta(minutes=3),
+    )
+
+    choose_best_model = PythonOperator(
+        task_id='Choose_best_vgg16',
+        python_callable=load_gold_and_test_vgg16,
+        op_kwargs = {"modelPath" : "/app/models/gold_vgg16.h5"},
+        execution_timeout=timedelta(minutes=3),
+    )
+
 
     # Links:
-    my_sensor >> prepare_file >> vgg16_build_and_test
+    my_sensor >> prepare_file >> [vgg16_build_and_test, vgg16_load_gold_and_test]
+    [vgg16_build_and_test, vgg16_load_gold_and_test] >> choose_best_model
