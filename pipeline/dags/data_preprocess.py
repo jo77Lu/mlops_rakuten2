@@ -10,7 +10,6 @@ from airflow.operators.python import PythonOperator
 from airflow.sensors.filesystem import FileSensor
 from airflow.models import XCom
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder
 
 sys.path.append(os.path.abspath("/app/models"))
 
@@ -43,15 +42,12 @@ def build_and_test_vgg16():
     dataset_train = model.convert_to_dataset(X_train, y_train)
     dataset_val = model.convert_to_dataset(X_test, y_test)
 
-    print(X_train.loc[0])
-
     # Compilez le modèle
     model.compile_model()
 
     # Affichez le résumé du modèle
     model.summary()
 
-    print(len(os.listdir("/app/rawData/images/image_train/")))
     # Entraînez le modèle
     model.train(train_data=dataset_train, validation_data=dataset_val, epochs=1)
 
