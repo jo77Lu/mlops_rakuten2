@@ -48,9 +48,9 @@ def prepare_csv_file(imagesPath, dataFile, labelFile, n_files=None):
 
     # Convertir les labels en entiers
     label_encoder = LabelEncoder()
-    labels = label_encoder.fit_transform(labels)
+    df['label'] = label_encoder.fit_transform(labels)
 
-    df_vgg16 = pd.concat([df['prdtypecode'], df_data['image_path']],axis=1)
+    df_vgg16 = pd.concat([df['label'], df_data['image_path']],axis=1)
 
     df_vgg16.to_csv(os.path.join('/app/clean', 'silverData_vgg16.csv'), index=False)
 
@@ -60,7 +60,7 @@ def build_and_test_vgg16():
 
     df = pd.read_csv('/app/clean/silverData_vgg16.csv')
 
-    X_train, X_test, y_train, y_test = train_test_split(df['image_path'], df['prdtypecode'], test_size=0.33, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(df['image_path'], df['label'], test_size=0.33, random_state=42)
 
 
     for image_path in X_train:
@@ -81,7 +81,7 @@ def build_and_test_vgg16():
 
     print(len(os.listdir("/app/rawData/images/image_train/")))
     # Entraînez le modèle
-    model.train(train_data=dataset_train, validation_data=dataset_val, epochs=3)
+    model.train(train_data=dataset_train, validation_data=dataset_val, epochs=1)
 
     # Évaluez le modèle
     test_loss, test_accuracy = model.evaluate(dataset_val)
@@ -193,7 +193,7 @@ with DAG(
     dag_id='Project_Rakuten2',
     description='My first DAG created with DataScientest',
     tags=['project', 'datascientest', 'Rakuten2'],
-    schedule_interval='*/1 * * * *',
+    schedule_interval='*/10 * * * *',
     catchup=False,
     default_args={
         'owner': 'airflow',
