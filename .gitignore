@@ -1,6 +1,6 @@
 #Folders to be ignored
 data/raw/images/
-
+tem.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

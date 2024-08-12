@@ -19,6 +19,7 @@ from airflow.operators.python import PythonOperator
 from airflow.sensors.filesystem import FileSensor
 from airflow.models import XCom
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
 
 sys.path.append(os.path.abspath("/app/models"))
 
@@ -45,6 +46,10 @@ def prepare_csv_file(imagesPath, dataFile, labelFile, n_files=None):
     image_paths = df_data['image_path'].values
     labels = df['prdtypecode'].values
 
+    # Convertir les labels en entiers
+    label_encoder = LabelEncoder()
+    labels = label_encoder.fit_transform(labels)
+
     df_vgg16 = pd.concat([df['prdtypecode'], df_data['image_path']],axis=1)
 
     df_vgg16.to_csv(os.path.join('/app/clean', 'silverData_vgg16.csv'), index=False)
@@ -65,7 +70,7 @@ def build_and_test_vgg16():
     dataset_train = model.convert_to_dataset(X_train, y_train)
     dataset_val = model.convert_to_dataset(X_test, y_test)
 
-    print(X_train['image_path'].loc[0])
+    print(X_train.loc[0])
 
     # Compilez le modèle
     model.compile_model()
@@ -209,7 +214,7 @@ with DAG(
     prepare_file = PythonOperator(
         task_id='Prepare_CSV_File',
         python_callable=prepare_csv_file,
-        op_kwargs = {"imagesPath" : "../data/raw/images/image_train/", "dataFile" : "/app/rawData/X_train_update.csv", "labelFile" : "/app/rawData/Y_train_CVw08PX.csv" }
+        op_kwargs = {"imagesPath" : "/app/rawData/images/fine_tuning/", "dataFile" : "/app/rawData/X_train_update.csv", "labelFile" : "/app/rawData/Y_train_CVw08PX.csv" }
     )
 
     vgg16_build_and_test = PythonOperator(
