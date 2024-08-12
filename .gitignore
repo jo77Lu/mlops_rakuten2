@@ -2,6 +2,7 @@
 data/raw/images/
 pretrain_models/*.h5
 
+tem.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
