@@ -1,4 +1,3 @@
-import pickle
 import pandas as pd
 import os
 from sklearn.model_selection import train_test_split
@@ -9,7 +8,7 @@ from keras.applications.vgg16 import VGG16, preprocess_input
 from keras.models import Model
 from keras.layers import Dense, Flatten, Dropout
 from keras.optimizers import Adam
-from keras.utils import to_categorical
+from keras.models import load_model
 from sklearn.preprocessing import LabelEncoder
    
 
@@ -36,7 +35,7 @@ class VGG16Model:
         labels = label_encoder.fit_transform(labels)
 
         return image_paths, labels
-    
+
     def convert_to_dataset(self, paths, labels, batch_size=32):
         dataset = tf.data.Dataset.from_tensor_slices((paths, labels))
         dataset = dataset.map(self.preprocess_image).batch(batch_size).prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
@@ -71,6 +70,12 @@ class VGG16Model:
         else:
             model = base_model
 
+       # Freeze First Layers
+        for layer in model.layers[:15]: 
+            layer.trainable = False
+        for layer in model.layers[15:]:
+            layer.trainable = True
+
         return model
 
     def compile_model(self, optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy']):
@@ -90,19 +95,27 @@ class VGG16Model:
     
     def save_model(self, filename):
         """
-        Sauvegarde le modèle au format .pckl.
+        Sauvegarde le modèle au format .h5.
         """
-        with open(filename, 'wb') as f:
-            pickle.dump(self.model, f)
+        self.model.save(filename)
 
     def load_model(self, filename):
         """
-        Charge le modèle depuis un fichier .pckl.
+        Charge le modèle depuis un fichier .h5.
         """
-        with open(filename, 'rb') as f:
-            self.model = pickle.load(f)
-        # Recompiler le modèle après le chargement
+        loaded_model = load_model(filename)
+
+        # Freeze almost all layers, we assume only fine tunning
+        for layer in loaded_model.layers[:-2]: 
+            layer.trainable = False
+        for layer in loaded_model.layers[-2:]:
+            layer.trainable = True
+
+        self.model = loaded_model
+
         self.compile_model()
+
+
 
 # Exemple d'utilisation
 if __name__ == "__main__":
@@ -132,14 +145,22 @@ if __name__ == "__main__":
     model.summary()
 
     # Entraînez le modèle
-    model.train(train_data=dataset_train, validation_data=dataset_val, epochs=3)
+    model.train(train_data=dataset_train, validation_data=dataset_val, epochs=1)
+
+    model.save_model("test.h5")
+
+
 
     # Évaluez le modèle
     test_loss, test_accuracy = model.evaluate(dataset_val)
     print(f'Test accuracy: {test_accuracy}')
 
+    model.load_model("test.h5")
 
+    model.summary()
 
-
-
+    model.train(train_data=dataset_train, validation_data=dataset_val, epochs=1)
+        # Évaluez le modèle
+    test_loss, test_accuracy = model.evaluate(dataset_val)
+    print(f'Test accuracy: {test_accuracy}')
 
