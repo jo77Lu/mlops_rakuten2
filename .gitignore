@@ -1,5 +1,6 @@
 #Folders to be ignored
 data/raw/images/
+pretrain_models/*.h5
 
 
 # Byte-compiled / optimized / DLL files
