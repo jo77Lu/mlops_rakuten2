@@ -1,7 +1,5 @@
 #Folders to be ignored
 data/raw/images/
-pretrain_models/*.h5
-
 tem.py
 pretrain_models/*.h5
 
