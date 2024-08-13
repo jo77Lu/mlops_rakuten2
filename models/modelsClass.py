@@ -115,6 +115,15 @@ class VGG16Model:
 
         self.compile_model()
 
+    @classmethod
+    def from_pretrained(cls, filename):
+        """
+        Constructeur alternatif pour creer une instance en se basant sur un modele existant.
+        """
+        instance = cls()
+        instance.load_model(filename)
+        return instance
+
 
 
 # Exemple d'utilisation
