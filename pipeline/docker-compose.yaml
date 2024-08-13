@@ -64,6 +64,7 @@ x-airflow-common: &airflow-common
     - ./dags:/opt/airflow/dags
     - ./logs:/opt/airflow/logs
     - ./plugins:/opt/airflow/plugins
+    - ../pretrain_models:/opt/airflow/pretrain_models
     - ../data/raw:/app/rawData
     - ../data/clean:/app/clean
     - ../models:/opt/airflow/dags/models
