@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fastapi-deployment
+  namespace: eval
+  labels:
+    app: fastapi
+spec:
+  selector:
+    matchLabels:
+      app: fastapi
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: fastapi
+    spec:
+      containers:
+      - name: fastapi
+        image: docker.io/joan77/k8s-dst-eval-fastapi:latest
+        command: ["uvicorn"]
+        args: ["main:app", "--host", "0.0.0.0", "--port", "8000"]
+        envFrom:
+        - secretRef:
+            name: mysql-user
+        volumeMounts:
+        - mountPath: /app
+          name: app-volume
+      volumes:
+      - name: app-volume
+        hostPath:
+          path: /home/ubuntu/kubernets/eval/test/k8s-eval-fastapi/app
+          type: Directory
