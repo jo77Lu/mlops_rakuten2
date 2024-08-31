@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: fastapi
-  namespace: eval
+  namespace: test
   labels:
     app: fastapi
 spec:
