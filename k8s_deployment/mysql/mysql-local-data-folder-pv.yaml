@@ -9,7 +9,7 @@ spec:
   accessModes:
     - ReadWriteOnce
   claimRef:
-     namespace: eval
+     namespace: test
      name: mysql-pvc-mysql-0
   hostPath:
     path: /var/lib/mysql
