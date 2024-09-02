@@ -19,6 +19,8 @@ spec:
       name: app-volume
   volumes:
   - name: app-volume
-    hostPath:
-      path: /home/ubuntu/kubernets/eval/test/k8s-eval-fastapi/app
-      type: Directory
+    #hostPath:
+    #  path: C:/Users/joan/Documents/DataScience_MLOPS/Project/mlops_rakuten2/k8s_deployment/api/app
+    #  type: Directory
+    persistentVolumeClaim:
+      claimName: pvc-app
