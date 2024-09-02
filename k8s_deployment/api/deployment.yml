@@ -25,11 +25,20 @@ spec:
         envFrom:
         - secretRef:
             name: mysql-user
-        volumeMounts:
-        - mountPath: /app
-          name: app-volume
-      volumes:
-      - name: app-volume
-        hostPath:
-          path: /home/ubuntu/kubernets/eval/test/k8s-eval-fastapi/app
-          type: Directory
+        # Copilot added:
+        resources:
+          limits:
+            cpu: "1"
+            memory: "512Mi"
+        # End of copilote
+        # volumeMounts:
+        # - mountPath: /app
+        #   name: app-volume
+      # volumes:
+      # - name: app-volume
+      #   hostPath:
+      #    path: C:\Users\joan\Documents\DataScience_MLOPS\Project\mlops_rakuten2\k8s_deployment\api\app
+      #    type: ""
+        #  type: Directory
+        # persistentVolumeClaim:
+        #   claimName: pvc-app

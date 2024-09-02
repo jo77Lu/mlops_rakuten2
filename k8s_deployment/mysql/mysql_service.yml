@@ -4,12 +4,12 @@ metadata:
   name: mysqlservice
   namespace: test
 spec:
-  clusterIP: 10.43.0.42
-  # type: NodePort
+  clusterIP: 10.96.0.254
+  #type: NodePort
   selector:
     app: web
   ports:
   - protocol: TCP
     port: 3307
     targetPort: 3306
-    # nodePort: 30000
+    #nodePort: 30000
