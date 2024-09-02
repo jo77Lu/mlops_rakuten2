@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-app
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: hostpath-storage
+  hostPath:
+    path: C:/Users/joan/Documents/DataScience_MLOPS/Project/mlops_rakuten2/k8s_deployment/api/app
+    type: ""
+    #Directory
