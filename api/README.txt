@@ -1,3 +1,5 @@
+#############################
+
 Attention !!!!
 le docker file est configurer pour utiliser le fichier test_api.py.
 Toute modification de ce fichier necessite de supprimer limage existante et 
@@ -20,3 +22,5 @@ Executer les commandes suivantes:
     docker run -d -p 80:80 myfastapiapp
 
 l'api est maintenant accessible a l'url: localhost:80
+
+
