@@ -2,6 +2,7 @@
 data/raw/images/
 tem.py
 pretrain_models/*.h5
+api/pretrain_models/*.h5
 
 
 # Byte-compiled / optimized / DLL files
