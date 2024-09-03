@@ -1,3 +1,6 @@
+import io
+import joblib
+import h5py
 import pandas as pd
 import os
 from sklearn.model_selection import train_test_split
@@ -31,8 +34,8 @@ class VGG16Model:
         labels = df['prdtypecode'].values
 
         # Convertir les labels en entiers
-        label_encoder = LabelEncoder()
-        labels = label_encoder.fit_transform(labels)
+        
+        labels = self.label_encoder.fit_transform(labels)
 
         return image_paths, labels
 
@@ -54,6 +57,7 @@ class VGG16Model:
         self.include_top = include_top
         self.weights = weights
         self.model = self._build_model()
+        self.label_encoder = LabelEncoder()
 
     def _build_model(self):
         base_model = VGG16(weights=self.weights, include_top=self.include_top, input_shape=self.input_shape)
@@ -90,14 +94,36 @@ class VGG16Model:
     def evaluate(self, test_data):
         return self.model.evaluate(test_data)
 
-    def predict(self, images):
-        return self.model.predict(images)
+    def predict(self, image_path):
+        # Read the image file
+        image = tf.io.read_file(image_path)
+        # Decode the PNG image
+        image = tf.image.decode_png(image, channels=3)
+        # Resize the image
+        image = tf.image.resize(image, (224, 224))
+        # Preprocess the image
+        image = preprocess_input(image)
+        # Expand dimensions to match the input shape expected by the model
+        image = tf.expand_dims(image, axis=0)
+        # Predict
+        #predictions = self.model.predict(image)
+        return self.model.predict(image)
+    
+    def predict_class(self, image_path):
+        predictions = self.predict(image_path)
+        return self.label_encoder.inverse_transform(predictions.argmax(axis=1))
     
     def save_model(self, filename):
         """
         Sauvegarde le modèle au format .h5.
         """
         self.model.save(filename)
+
+    def save_encoder(self, filename):
+        """
+        Sauvegarde l'encodeur au format .joblib.
+        """
+        joblib.dump(self.label_encoder, filename)
 
     def load_model(self, filename):
         """
@@ -114,6 +140,12 @@ class VGG16Model:
         self.model = loaded_model
 
         self.compile_model()
+
+    def load_encoder(self, filename):
+        """
+        Charge l'encodeur depuis un fichier .joblib.
+        """
+        self.label_encoder = joblib.load(filename)
 
     @classmethod
     def from_pretrained(cls, filename):
@@ -156,7 +188,10 @@ if __name__ == "__main__":
     # Entraînez le modèle
     model.train(train_data=dataset_train, validation_data=dataset_val, epochs=1)
 
+    # model.save_model("test.h5")
+
     model.save_model("test.h5")
+    model.save_encoder("encoder.joblib")
 
 
 
@@ -169,7 +204,15 @@ if __name__ == "__main__":
     model.summary()
 
     model.train(train_data=dataset_train, validation_data=dataset_val, epochs=1)
-        # Évaluez le modèle
+    # Évaluez le modèle
     test_loss, test_accuracy = model.evaluate(dataset_val)
     print(f'Test accuracy: {test_accuracy}')
 
+    model = VGG16Model.from_pretrained("pretrain_models/gold_vgg16.h5")
+    model.load_encoder("pretrain_models/encoder.joblib")
+
+    model.summary() 
+
+    pred = model.predict("C:\\Users\\joan\\Documents\\DataScience_MLOPS\\Project\\mlops_rakuten2\\data\\raw\\images\\fine_tuning\\image_1006538318_product_272891494.jpg")
+
+    print(model.label_encoder.inverse_transform(pred.argmax(axis=1)))
