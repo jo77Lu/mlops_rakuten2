@@ -20,16 +20,18 @@ spec:
       containers:
       - name: fastapi
         image: joan77/api_test:latest
-        command: ["uvicorn"]
-        args: ["main:app", "--host", "0.0.0.0", "--port", "8000"]
+        ports:
+        - containerPort: 80
+        #command: ["uvicorn"]
+        #args: ["main:app", "--host", "0.0.0.0", "--port", "8000"]
         envFrom:
         - secretRef:
             name: mysql-user
         # Copilot added:
         resources:
           limits:
-            cpu: "1"
-            memory: "512Mi"
+            #cpu: "1"
+            memory: "6000Mi"
         # End of copilote
         # volumeMounts:
         # - mountPath: /app
