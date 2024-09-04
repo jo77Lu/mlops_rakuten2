@@ -19,7 +19,7 @@ Executer les commandes suivantes:
     docker build . -t myfastapi:latest
 
     3. Run docker:
-    docker run -d -p 80:80 myfastapi:latest
+    docker run -d -p 8080:80 myfastapi:latest
 
 l'api est maintenant accessible a l'url: localhost:80
 
