@@ -43,7 +43,7 @@ def build_and_test_vgg16(pretrain_model_file, trained_model_path, **kwargs):
     #Download and preprocess train data
     df = pd.read_csv(CSV_PATH)
 
-    X_train, X_test, y_train, y_test = train_test_split(df['image_path'], df['label'], test_size=0.33, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(df['image_path'], model.label_encoder.transform(df['label']), test_size=0.33, random_state=42)
     
     dataset_train = model.convert_to_dataset(X_train, y_train)
     dataset_val = model.convert_to_dataset(X_test, y_test)
