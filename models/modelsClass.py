@@ -89,7 +89,8 @@ class VGG16Model:
         return self.model.summary()
 
     def train(self, train_data, validation_data, epochs=1):
-        self.model.fit(train_data, epochs=epochs, validation_data=validation_data)
+        hist = self.model.fit(train_data, epochs=epochs, validation_data=validation_data)
+        return hist
 
     def evaluate(self, test_data):
         return self.model.evaluate(test_data)
