@@ -86,7 +86,7 @@ class VGG16Model:
         self.model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
 
     def summary(self):
-        self.model.summary()
+        return self.model.summary()
 
     def train(self, train_data, validation_data, epochs=1):
         self.model.fit(train_data, epochs=epochs, validation_data=validation_data)
