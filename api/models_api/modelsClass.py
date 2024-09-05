@@ -161,9 +161,9 @@ class VGG16Model:
 
 # Exemple d'utilisation
 if __name__ == "__main__":
-    fileLabels = "../data/raw/Y_train_CVw08PX.csv"
-    pathImgs = "../data/raw/images/image_train/"
-    dataFile = "../data/raw/X_train_update.csv"
+    fileLabels = "../../data/raw/Y_train_CVw08PX.csv"
+    pathImgs = "../../data/raw/images/image_train/"
+    dataFile = "../../data/raw/X_train_update.csv"
 
     # Déterminer le chemin absolu du fichier actuel (main.py)
     current_dir = os.path.dirname(__file__)
@@ -174,6 +174,12 @@ if __name__ == "__main__":
     model = VGG16Model(input_shape=(224, 224, 3), num_classes=27, include_top=False)
 
     img_paths, labels = model.preprocess_data(label_file=fileLabels, images_path=pathImgs, data_file=dataFile, isReduced=True)
+
+    dfSaved = pd.DataFrame({'filePath': img_paths, 'labels': labels})
+
+    print(dfSaved.head())
+
+    dfSaved.iloc[0:100].to_csv("testData.csv", index=False)
 
     X_train, X_test, y_train, y_test = train_test_split(img_paths, labels, test_size=0.33, random_state=42)
 
