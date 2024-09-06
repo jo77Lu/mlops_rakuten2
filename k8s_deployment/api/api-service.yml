@@ -1,0 +1,28 @@
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: rakuten_api-service
+#   namespace: test
+#   labels:
+#     app: rakuten_api
+# spec:
+#   selector:
+#     app: rakuten_api
+#   type: NodePort
+#   ports:
+#     - protocol: TCP
+#       port: 80
+#       targetPort: 80
+#       nodePort: 30000
+apiVersion: v1
+kind: Service
+metadata:
+  name: rakuten-api-service
+spec:
+  selector:
+    app: rakuten-api
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: ClusterIP

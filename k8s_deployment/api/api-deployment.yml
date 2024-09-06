@@ -1,24 +1,24 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: fastapi-deployment
+  name: rakuten-api-deployment
   namespace: test
   labels:
-    app: fastapi
+    app: rakuten_api
 spec:
   selector:
     matchLabels:
-      app: fastapi
+      app: rakuten-api
   replicas: 3
   strategy:
     type: RollingUpdate
   template:
     metadata:
       labels:
-        app: fastapi
+        app: rakuten-api
     spec:
       containers:
-      - name: fastapi
+      - name: rakuten-api
         image: joan77/api_test:latest
         ports:
         - containerPort: 80
