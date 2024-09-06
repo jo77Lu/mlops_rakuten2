@@ -14,6 +14,8 @@ COPY models_api /app/models_api
 
 COPY tests/app_basis/test_app_basis.py /app/tests/
 COPY tests/app_basis/data/mock_fine_tune.csv /app/tests/data/
+COPY tests/app_basis/data/mock_evaluate_missing_filepath.csv /app/tests/data/
+COPY tests/app_basis/data/mock_evaluate_missing_labels.csv /app/tests/data/
 COPY tests/app_basis/data/mock_image.jpg /app/tests/data/
 COPY tests/app_basis/data/mock_text.txt /app/tests/data/
 
