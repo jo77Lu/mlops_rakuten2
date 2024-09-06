@@ -1,8 +1,10 @@
 import streamlit as st
 import requests
 import pandas as pd
+import os
 
-API_URL = "http://localhost:8080"
+# API_URL = "http://localhost:8080"
+API_URL = os.getenv("API_URL", "http://localhost:8080")
 
 def main():
     st.title("Machine Learning Model API Interface")
