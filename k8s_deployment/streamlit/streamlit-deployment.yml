@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rakuten-streamlit-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: rakuten-streamlit
+  template:
+    metadata:
+      labels:
+        app: rakuten-streamlit
+    spec:
+      containers:
+      - name: rakuten-streamlit-container
+        image: joan77/test_streamlit:latest
+        ports:
+        - containerPort: 8501
+        env:
+        - name: API_URL
+          value: "http://rakuten-api-service:80"
+        # resources:
+        #   limits:
+        #     cpu: "1"
+        #     memory: "1Gi"
+        #   requests:
+        #     cpu: "0.5"
+        #     memory: "512Mi"
