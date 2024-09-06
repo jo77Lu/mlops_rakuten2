@@ -93,3 +93,92 @@ def test_fine_tune_invalid_epochs():
             response = requests.post(f"{BASE_URL}/fine-tune", files=files, data=data)
     print(response.status_code)
     assert response.status_code == 422
+    
+import os
+import pytest
+import requests
+from fastapi.testclient import TestClient
+from io import BytesIO
+
+RUNNING_IN_DOCKER = os.getenv("RUNNING_IN_DOCKER", "false").lower() == "true"
+
+if RUNNING_IN_DOCKER:
+    from main import app
+    client = TestClient(app)
+else:
+    BASE_URL = "http://localhost:8080"
+
+TEST_DATA_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+
+# Test nominal : Fichier CSV valide
+def test_evaluate_success():
+    csv_file = "data/mock_fine_tune.csv"
+    with open(csv_file, "rb") as file:
+        files = {'csv_file': ('data/mock_fine_tune.csv', file, 'text/csv')}
+        if RUNNING_IN_DOCKER:
+            response = client.post("/evaluate", files=files)
+        else:
+            response = requests.post(f"{BASE_URL}/evaluate", files=files)
+    
+    assert response.status_code == 200
+    json_response = response.json()
+    assert json_response["status"] == "success"
+    assert "loss" in json_response
+    assert "accuracy" in json_response
+
+# Test limite : Fichier CSV vide
+def test_evaluate_empty_csv():
+    empty_csv = BytesIO(b"")
+    files = {'csv_file': ('empty.csv', empty_csv, 'text/csv')}
+    if RUNNING_IN_DOCKER:
+        response = client.post("/evaluate", files=files)
+    else:
+        response = requests.post(f"{BASE_URL}/evaluate", files=files)
+    
+    assert response.status_code == 400
+
+def test_evaluate_missing_filePath():
+    csv_file = "data/mock_evaluate_missing_filepath.csv"
+    with open(csv_file, "rb") as file:
+        files = {'csv_file': ('data/mock_evaluate_missing_filepath.csv', file, 'text/csv')}
+        if RUNNING_IN_DOCKER:
+            response = client.post("/evaluate", files=files)
+        else:
+            response = requests.post(f"{BASE_URL}/evaluate", files=files)
+    
+    assert response.status_code == 400
+    
+def test_evaluate_missing_filePath():
+    csv_file = "data/mock_evaluate_missing_labels.csv"
+    with open(csv_file, "rb") as file:
+        files = {'csv_file': ('data/mock_evaluate_missing_labels.csv', file, 'text/csv')}
+        if RUNNING_IN_DOCKER:
+            response = client.post("/evaluate", files=files)
+        else:
+            response = requests.post(f"{BASE_URL}/evaluate", files=files)
+    
+    assert response.status_code == 400
+
+
+def test_evaluate_non_csv_file():
+    non_csv_file = "data/mock_text.txt"
+    with open(non_csv_file, "rb") as file:
+        files = {'csv_file': ('data/mock_text.txt', file, 'text/csv')}
+        if RUNNING_IN_DOCKER:
+            response = client.post("/evaluate", files=files)
+        else:
+            response = requests.post(f"{BASE_URL}/evaluate", files=files)
+    
+    assert response.status_code == 422 
+
+
+def test_evaluate_invalid_file_paths():
+    invalid_csv_content = "filePath,labels\npath/to/nonexistent1.jpg,cat\npath/to/nonexistent2.jpg,dog"
+    invalid_csv = BytesIO(invalid_csv_content.encode('utf-8'))
+    files = {'csv_file': ('invalid_paths.csv', invalid_csv, 'text/csv')}
+    if RUNNING_IN_DOCKER:
+        response = client.post("/evaluate", files=files)
+    else:
+        response = requests.post(f"{BASE_URL}/evaluate", files=files)
+    
+    assert response.status_code == 500  # Erreur interne car fichiers inexistants
