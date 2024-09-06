@@ -37,8 +37,9 @@ def build_and_test_vgg16(pretrain_model_file, trained_model_path, **kwargs):
     """
     
     ti = kwargs['ti']
-    model = VGG16Model(input_shape=IMAGE_SHAPE, num_classes=NUM_CLASSES, include_top=False)
-    model.load_model(pretrain_model_file)
+    # model = VGG16Model(input_shape=IMAGE_SHAPE, num_classes=NUM_CLASSES, include_top=False)
+    model = VGG16Model.from_pretrained(pretrain_model_file)
+    model.load_encoder(f"{TRAINED_MODEL_PATH}/encoder.joblib")
 
     #Download and preprocess train data
     df = pd.read_csv(CSV_PATH)
@@ -72,12 +73,13 @@ def load_gold_and_test_vgg16(modelFile, **kwargs):
 
     ti = kwargs['ti']
 
-    model = VGG16Model(input_shape=IMAGE_SHAPE, num_classes=NUM_CLASSES, include_top=False)
-    model.load_model(modelFile)
+    # model = VGG16Model(input_shape=IMAGE_SHAPE, num_classes=NUM_CLASSES, include_top=False)
+    model = VGG16Model.from_pretrained(modelFile)
+    model.load_encoder(f"{TRAINED_MODEL_PATH}/encoder.joblib")
 
     #download and preprocess test data
     df = pd.read_csv(CSV_PATH)
-    _, X_test, _, y_test = train_test_split(df['image_path'], df['label'], test_size=0.33, random_state=42)
+    _, X_test, _, y_test = train_test_split(df['image_path'], model.label_encoder.transform(df['label']), test_size=0.33, random_state=42)
     dataset_val = model.convert_to_dataset(X_test, y_test)
 
     #Compile and evaluate
