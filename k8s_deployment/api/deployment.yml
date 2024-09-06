@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fastapi-deployment
+  namespace: test
+  labels:
+    app: fastapi
+spec:
+  selector:
+    matchLabels:
+      app: fastapi
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: fastapi
+    spec:
+      containers:
+      - name: fastapi
+        image: joan77/api_test:latest
+        ports:
+        - containerPort: 80
+        #command: ["uvicorn"]
+        #args: ["main:app", "--host", "0.0.0.0", "--port", "8000"]
+        envFrom:
+        - secretRef:
+            name: mysql-user
+        # Copilot added:
+        resources:
+          limits:
+            #cpu: "1"
+            memory: "6000Mi"
+        # End of copilote
+        # volumeMounts:
+        # - mountPath: /app
+        #   name: app-volume
+      # volumes:
+      # - name: app-volume
+      #   hostPath:
+      #    path: C:\Users\joan\Documents\DataScience_MLOPS\Project\mlops_rakuten2\k8s_deployment\api\app
+      #    type: ""
+        #  type: Directory
+        # persistentVolumeClaim:
+        #   claimName: pvc-app
