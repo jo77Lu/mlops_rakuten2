@@ -94,21 +94,6 @@ def test_fine_tune_invalid_epochs():
     print(response.status_code)
     assert response.status_code == 422
     
-import os
-import pytest
-import requests
-from fastapi.testclient import TestClient
-from io import BytesIO
-
-RUNNING_IN_DOCKER = os.getenv("RUNNING_IN_DOCKER", "false").lower() == "true"
-
-if RUNNING_IN_DOCKER:
-    from main import app
-    client = TestClient(app)
-else:
-    BASE_URL = "http://localhost:8080"
-
-TEST_DATA_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 
 # Test nominal : Fichier CSV valide
 def test_evaluate_success():
