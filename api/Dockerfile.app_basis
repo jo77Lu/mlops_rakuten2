@@ -17,7 +17,7 @@ COPY tests /app/tests/
 COPY tests/app_basis /app/tests/app_basis
 COPY tests/app_basis/data /app/tests/app_basis/data
 
-CMD ["pytest", "tests/app_basis/test_app_basis.py"]
+CMD ["sh", "-c", "pytest tests/app_basis/test_app_basis.py | tee tests/app_basis/test_app_basis.log"]
 
 # COPY tests/app_basis/data/mock_fine_tune.csv /app/tests/data/data/mock_fine_tune.csv
 # COPY tests/app_basis/data/mock_evaluate_missing_filepath.csv /app/tests/data/mock_evaluate_missing_filepath.csv
