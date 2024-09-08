@@ -1,4 +1,4 @@
-FROM apache/airflow:2.8.1
+FROM docker.io/apache/airflow:latest-python3.9
 COPY requirementsDockerImage.txt /
 RUN pip install --no-cache-dir "apache-airflow==${AIRFLOW_VERSION}" -r /requirementsDockerImage.txt
 
