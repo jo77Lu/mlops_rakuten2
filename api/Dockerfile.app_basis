@@ -12,6 +12,7 @@ RUN pip install --no-cache-dir -r requirements_api.txt
 COPY main.py /app/main.py
 COPY pretrain_models /app/pretrain_models
 COPY models_api /app/models_api
+COPY testData /app/testData
 COPY tests /app/tests/
 COPY tests/app_basis /app/tests/app_basis
 COPY tests/app_basis/data /app/tests/app_basis/data

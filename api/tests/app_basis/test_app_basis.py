@@ -102,12 +102,13 @@ def test_evaluate_success():
 
 # Test limite : Fichier CSV vide
 def test_evaluate_empty_csv():
-    empty_csv = BytesIO(b"")
-    files = {'csv_file': ('empty.csv', empty_csv, 'text/csv')}
-    if RUNNING_IN_DOCKER:
-        response = client.post("/evaluate", files=files)
-    else:
-        response = requests.post(f"{BASE_URL}/evaluate", files=files)
+    file_path = os.path.join(os.getcwd(), "testData", "empty.csv")
+    with open(file_path, "rb") as file:
+        files = {'csv_file': ('empty.csv', file, 'text/csv')}
+        if RUNNING_IN_DOCKER:
+            response = client.post("/evaluate", files=files)
+        else:
+            response = requests.post(f"{BASE_URL}/evaluate", files=files)
     
     assert response.status_code == 400
     assert response.json() == {"detail" : "400: No columns to parse from file"} 
