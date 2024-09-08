@@ -13,7 +13,6 @@ from keras.layers import Dense, Flatten, Dropout
 from keras.optimizers import Adam
 from keras.models import load_model
 from sklearn.preprocessing import LabelEncoder
-   
 
 
 class VGG16Model:
@@ -23,8 +22,8 @@ class VGG16Model:
         df_data = pd.read_csv(data_file)
 
         if isReduced:
-            df = df.iloc[0:100]
-            df_data = df_data.iloc[0:100]
+            df = df.iloc[0:50]
+            df_data = df_data.iloc[0:50]
 
         # Ajouter le chemin complet aux fichiers d'images
         df_data['image_path'] = df_data.apply(lambda row: os.path.join(images_path, f"image_{row['imageid']}_product_{row['productid']}.jpg"), axis=1)

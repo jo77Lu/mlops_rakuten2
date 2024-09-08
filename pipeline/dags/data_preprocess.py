@@ -1,9 +1,11 @@
 import os
 import shutil
 import sys
+import h5py
 from datetime import datetime, timedelta
 
 import pandas as pd
+import tensorflow
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 from airflow.sensors.filesystem import FileSensor
@@ -21,6 +23,12 @@ TRAINED_MODEL_PATH = "/opt/airflow/pretrain_models"
 PRETRAIN_MODEL_FILE = f"{TRAINED_MODEL_PATH}/gold_vgg16.h5"
 CANDIDATE_MODEL_FILE = f"{TRAINED_MODEL_PATH}/candidate_vgg16.h5"
 
+# def get_keras_version(model_file):
+#     with h5py.File(model_file, 'r') as f:
+#         keras_version = f.attrs.get('keras_version')
+#         backend = f.attrs.get('backend')
+#         return keras_version, backend
+
 def prepare_csv_file(imagesPath, dataFile, labelFile, n_files=None):
     model = VGG16Model(input_shape=IMAGE_SHAPE, num_classes=NUM_CLASSES, include_top=False)
     image_path, labels = model.preprocess_data(imagesPath, labelFile, dataFile, isReduced=True)
@@ -35,7 +43,9 @@ def build_and_test_vgg16(pretrain_model_file, trained_model_path, **kwargs):
             trained_model_path (str): Path to save trained model
             **kwargs: Additional arguments        
     """
-    
+    # print(f"FILE VERSION: {get_keras_version(pretrain_model_file)}")
+    # print(f"KERAS Version: {tensorflow.keras.__version__}")
+
     ti = kwargs['ti']
     # model = VGG16Model(input_shape=IMAGE_SHAPE, num_classes=NUM_CLASSES, include_top=False)
     model = VGG16Model.from_pretrained(pretrain_model_file)
@@ -48,11 +58,17 @@ def build_and_test_vgg16(pretrain_model_file, trained_model_path, **kwargs):
     
     dataset_train = model.convert_to_dataset(X_train, y_train)
     dataset_val = model.convert_to_dataset(X_test, y_test)
+
+    print("\n\n#### TESTING FLAG COMPILE START ####\n\n")
     
     model.compile_model()
     model.summary()
+
+    print("\n\n#### TESTING FLAG TRAIN START ####\n\n")
     
     model.train(train_data=dataset_train, validation_data=dataset_val, epochs=1)
+
+    print("\n\n#### TESTING FLAG TRAIN DONE ####\n\n")
     
     #Get score
     _, test_accuracy = model.evaluate(dataset_val)
