@@ -34,13 +34,13 @@ jobs:
          https://github.com/indira893/ModelRakutenMLOps/releases/download/modelvgg/gold_vgg16.h5
 
     - name: List files in repository
-      run: ls -R
+      run: ls -
+      
+    - name: Grant execution rights to script
+      run: chmod +x api/wait_for_it.sh
 
     - name: Start API with Docker Compose
       run: docker-compose -f api/docker-compose.yml up -d --build api
-
-    # - name: Grant execution rights to script
-    #   run: chmod +x api/wait_for_it.sh
 
     - name: Show Docker Compose logs
       run: docker-compose -f api/docker-compose.yml logs --tail="all" api
