@@ -24,3 +24,12 @@ Executer les commandes suivantes:
 l'api est maintenant accessible a l'url: localhost:8080
 
 
+Pour generer L'image a utiliser:
+
+Generer l'image: (Necessite droits admin sur compte docker hub joan77)
+1. Alle dans le repertoire du DockerFile: cd PATH
+2. login au compte joan77: docker login
+3. create the image: docker build -t api_test . 
+4. Tag l'image: docker tag api_test joan77/api_test:latest
+5. Push: docker push joan77/api_test:latest
+
