@@ -9,6 +9,66 @@ import os
 from typing import List, Dict
 import pandas as pd
 
+from jose import JWTError, jwt
+from passlib.context import CryptContext
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from datetime import datetime, timedelta
+
+# Secret key pour signer les JWT (à stocker de manière sécurisée, par exemple dans une variable d'environnement)
+SECRET_KEY = "votre_cle_secrete_super_securisee"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+# Configuration du hachage de mot de passe (si vous gérez les utilisateurs)
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+# OAuth2PasswordBearer indique que l'authentification est basée sur des tokens
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+# Créer un token JWT
+def create_access_token(data: dict, expires_delta: timedelta = None):
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(minutes=15)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+# Vérifier et décoder un token JWT
+def verify_token(token: str, credentials_exception):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise credentials_exception
+        return username
+    except JWTError:
+        raise credentials_exception
+    
+    @app.post("/token")
+    async def login(form_data: OAuth2PasswordRequestForm = Depends()):
+        # Pour cet exemple, nous utilisons un utilisateur et un mot de passe codés en dur.
+        # Vous pouvez connecter cela à une base de données ou à un service de gestion d'utilisateurs.
+        username = form_data.username
+        password = form_data.password
+
+        # Exemple utilisateur (vous devez remplacer par un vrai utilisateur provenant de la base de données)
+        fake_user = {"username": "user1", "hashed_password": pwd_context.hash("password")}
+
+        # Vérification des identifiants
+        if username != fake_user["username"] or not pwd_context.verify(password, fake_user["hashed_password"]):
+            raise HTTPException(status_code=400, detail="Incorrect username or password")
+
+        # Créer un token JWT pour l'utilisateur authentifié
+        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        access_token = create_access_token(data={"sub": username}, expires_delta=access_token_expires)
+
+        return {"access_token": access_token, "token_type": "bearer"}
+
+
+
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 GOLD_MODEL_FILE = "pretrain_models/gold_vgg16.h5"
 GOLD_LABELENCODER_FILE = "pretrain_models/encoder.joblib"
@@ -60,7 +120,14 @@ async def get_model_summary():
     
     
 @app.post("/predict", response_model=PredictionResponse)
-async def predict_image(file: UploadFile = File(...)):
+async def predict_image(file: UploadFile = File(...), token: str = Depends(oauth2_scheme)):
+
+    # Vérification du token
+    credentials_exception = HTTPException(status_code=401, detail="Could not validate credentials")
+    username = verify_token(token, credentials_exception)
+
+
+
     try:
         # Check existence du repertoire temp
         temp_dir = "temp"
