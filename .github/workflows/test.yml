@@ -34,6 +34,9 @@ jobs:
     - name: Start API with Docker Compose
       run: docker-compose -f api/docker-compose.yml up -d --build api
 
+    - name: Grant execution rights to script
+      run: chmod +x api/wait_for_it.sh
+
     - name: Wait for API to be ready
       run: api/wait_for_it.sh localhost:80 -t 60
 
