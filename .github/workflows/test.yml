@@ -34,7 +34,7 @@ jobs:
          https://github.com/indira893/ModelRakutenMLOps/releases/download/modelvgg/gold_vgg16.h5
 
     - name: List files in repository
-      run: ls -
+      run: ls -R
       
     - name: Grant execution rights to script
       run: chmod +x api/wait_for_it.sh
