@@ -10,7 +10,7 @@ services:
       - .:/app
     environment:
       - PYTHONUNBUFFERED=1
-    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80", "--", "./wait_for_it.sh localhost:80 -t 120"]
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80", "--", "/app/wait_for_it.sh localhost:80 -t 120", "--", "pytest", "/app/tests/app_basis/test_app_basis.py"]
     deploy:
       resources:
         limits:

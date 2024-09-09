@@ -6,6 +6,9 @@ WORKDIR /app
 
 COPY ./requirements_api.txt /app/requirements_api.txt
 
+# Grant execution rights
+RUN chmod +x ./wait_for_it.sh
+
 # Copy the current directory contents into the container at /app
 COPY ./main.py /app/main.py
 COPY ./wait_for_it.sh /app/wait_for_it.sh
