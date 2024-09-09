@@ -49,7 +49,7 @@ jobs:
       run: docker ps -a
 
     - name: Wait for API to be ready
-      run: api/wait_for_it.sh localhost:80 -t 120
+      run: app/wait_for_it.sh localhost:80 -t 120
 
     - name: Run tests and generate HTML report
       run: pytest api/tests/ --html=report.html
