@@ -35,7 +35,7 @@ jobs:
       run: docker-compose -f api/docker-compose.yml up -d --build api
 
     - name: Wait for API to be ready
-      run: ./wait_for_it.sh localhost:80 -t 60
+      run: api/wait_for_it.sh localhost:80 -t 60
 
     - name: Run tests and generate HTML report
       run: pytest --html=report.html
