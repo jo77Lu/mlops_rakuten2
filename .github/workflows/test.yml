@@ -43,13 +43,13 @@ jobs:
       run: chmod +x api/wait_for_it.sh
 
     - name: Show Docker Compose logs
-      run: docker-compose -f api/docker-compose.yml logs -d api
+      run: docker-compose -f api/docker-compose.yml logs --tail="all" api
 
     - name: List running Docker containers
       run: docker ps -a
 
     - name: Wait for API to be ready
-      run: api/wait_for_it.sh api:80 -t 120
+      run: api/wait_for_it.sh localhost:80 -t 120
 
     - name: Run tests and generate HTML report
       run: pytest api/tests/ --html=report.html
