@@ -28,12 +28,12 @@ jobs:
         sudo apt-get update
         sudo apt-get install docker-compose -y
 
-    - name: List files in repository
-      run: ls -R
-
     - name: Download release asset
       run: |
         curl -L https://github.com/jo77Lu/mlops_rakuten2/releases/download/model/gold_vgg16.h5 > api/pretrain_models/gold_vgg16.h5
+
+    - name: List files in repository
+      run: ls -R
 
     - name: Start API with Docker Compose
       run: docker-compose -f api/docker-compose.yml up -d --build api
