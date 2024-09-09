@@ -43,7 +43,7 @@ jobs:
       run: chmod +x api/wait_for_it.sh
 
     - name: Show Docker Compose logs
-      run: docker-compose -f api/docker-compose.yml logs --follow api
+      run: docker-compose -f api/docker-compose.yml logs -d api
 
     - name: List running Docker containers
       run: docker ps -a
