@@ -31,6 +31,11 @@ jobs:
     - name: List files in repository
       run: ls -R
 
+    - name: Download release asset
+      run: |
+        curl -L -o api/pretrain_models/gold_vgg16.h5 \
+          https://github.com/your_repo/your_repo/releases/download/v1.0.0/gold_vgg16.h5
+
     - name: Start API with Docker Compose
       run: docker-compose -f api/docker-compose.yml up -d --build api
 
