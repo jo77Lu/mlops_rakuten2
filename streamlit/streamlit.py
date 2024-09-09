@@ -1,6 +1,5 @@
 import streamlit as st
 import requests
-import pandas as pd
 import os
 
 # API_URL = "http://localhost:8080"
@@ -34,7 +33,7 @@ def main():
         st.header("Predict")
         uploaded_file = st.file_uploader("Upload an image file", type=["jpg", "jpeg", "png"])
         if uploaded_file is not None:
-            files = {"file": uploaded_file.getvalue()}
+            files = {"file": uploaded_file}
             response = requests.post(f"{API_URL}/predict", files=files)
             if response.status_code == 200:
                 st.success(f"Predicted Class: {response.json()['predicted_class']}")
@@ -47,7 +46,7 @@ def main():
         test_size = st.slider("Test Size", min_value=0.1, max_value=0.9, value=0.33)
         epochs = st.number_input("Epochs", min_value=1, max_value=100, value=5)
         if uploaded_file is not None:
-            files = {"csv_file": uploaded_file.getvalue()}
+            files = {"csv_file": uploaded_file}
             data = {"test_size": test_size, "epochs": epochs}
             response = requests.post(f"{API_URL}/fine-tune", files=files, data=data)
             if response.status_code == 200:
@@ -60,7 +59,7 @@ def main():
         st.header("Evaluate Model")
         uploaded_file = st.file_uploader("Upload a CSV file with 'filePath' and 'labels' columns", type=["csv"])
         if uploaded_file is not None:
-            files = {"csv_file": uploaded_file.getvalue()}
+            files = {"csv_file": uploaded_file}
             response = requests.post(f"{API_URL}/evaluate", files=files)
             if response.status_code == 200:
                 st.success("Model evaluated successfully")
