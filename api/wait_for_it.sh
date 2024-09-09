@@ -15,6 +15,7 @@ until $(curl --output /dev/null --silent --head --fail http://$host); do
   if [ $elapsed_time -ge $timeout ]; then
     echo "Timeout reached after $timeout seconds. Exiting."
     exit 1
+  fi
   sleep 5
 done
 
