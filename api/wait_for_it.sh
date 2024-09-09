@@ -4,12 +4,12 @@
 host=$1
 cmd="$@"
 timeout=600
-start_time=$(date+%s)
+start_time=$(date + %s)
 
 until $(curl --output /dev/null --silent --head --fail http://$host); do
   printf '.'
 
-  current_time=$(date+%s)
+  current_time=$(date + %s)
   elapsed_time=$((current_time - start_time))
 
   if [ $elapsed_time -ge $timeout ]; then
