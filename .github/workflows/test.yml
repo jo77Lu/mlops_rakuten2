@@ -33,8 +33,7 @@ jobs:
 
     - name: Download release asset
       run: |
-        curl -L -o api/pretrain_models/gold_vgg16.h5 \
-          https://github.com/jo77Lu/mlops_rakuten2/releases/download/model/gold_vgg16.h5
+        curl -L https://github.com/jo77Lu/mlops_rakuten2/releases/download/model/gold_vgg16.h5 > api/pretrain_models/gold_vgg16.h5
 
     - name: Start API with Docker Compose
       run: docker-compose -f api/docker-compose.yml up -d --build api
