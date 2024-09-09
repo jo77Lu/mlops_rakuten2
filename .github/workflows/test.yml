@@ -38,7 +38,7 @@ jobs:
       run: chmod +x api/wait_for_it.sh
 
     - name: Show Docker Compose logs
-      run: docker-compose logs api
+      run: docker-compose -f api/docker-compose.yml logs api
 
     - name: Wait for API to be ready
       run: api/wait_for_it.sh api:80 -t 120
