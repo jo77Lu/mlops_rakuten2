@@ -15,12 +15,12 @@ services:
       resources:
         limits:
           memory: 4g 
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:80/ || exit 1"]
-      interval: 30s
-      retries: 3
-      start_period: 10s
-      timeout: 10s
+    # healthcheck:
+    #   test: ["CMD-SHELL", "curl -f http://localhost:80/ || exit 1"]
+    #   interval: 30s
+    #   retries: 3
+    #   start_period: 10s
+    #   timeout: 10s
     
 
   tests_app_basis:
@@ -34,7 +34,7 @@ services:
       - RUNNING_IN_DOCKER=true
       - PYTHONPATH=/app
     depends_on:
-      api:
-        condition: service_healthy
-    command: ["./wait_for_it.sh", "api", "80", "--", "pytest", "tests/app_basis/test_app_basis.py"]
+      - api
+        # condition: service_healthy
+    command: ["./wait_for_it.sh api 80", "--", "pytest", "tests/app_basis/test_app_basis.py"]
     working_dir: /app

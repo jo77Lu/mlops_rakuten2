@@ -32,16 +32,19 @@ jobs:
       run: ls -R
 
     - name: Start API with Docker Compose
-      run: docker-compose -f api/docker-compose.yml up -d --build
+      run: docker-compose -f api/docker-compose.yml up -d --build api
 
-    # - name: Grant execution rights to script
-    #   run: chmod +x api/wait_for_it.sh
+    - name: Grant execution rights to script
+      run: chmod +x api/wait_for_it.sh
 
-    # - name: Wait for API to be ready
-    #   run: api/wait_for_it.sh localhost:80 -t 60
+    - name: Show Docker Compose logs
+      run: docker-compose logs api
+
+    - name: Wait for API to be ready
+      run: api/wait_for_it.sh api:80 -t 120
 
     - name: Run tests and generate HTML report
-      run: pytest --html=report.html
+      run: pytest api/tests/ --html=report.html
 
     - name: Upload HTML report
       uses: actions/upload-artifact@v2
