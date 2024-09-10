@@ -40,6 +40,8 @@ jobs:
     - name: Start API and run tests with Docker Compose
       run: docker-compose -f api/docker-compose.yml up --abort-on-container-exit --build
 
+    - name: Check logs on the API
+      run:  docker-compose -f api/docker-compose.yml logs api
 
     - name: List running containers
       run: docker ps
