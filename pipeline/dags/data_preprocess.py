@@ -54,7 +54,7 @@ def build_and_test_vgg16(pretrain_model_file, trained_model_path, **kwargs):
     #Download and preprocess train data
     df = pd.read_csv(CSV_PATH)
 
-    X_train, X_test, y_train, y_test = train_test_split(df['image_path'], model.label_encoder.transform(df['label']), test_size=0.33, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(df['image_path'], df['label'], test_size=0.33, random_state=42)
     
     dataset_train = model.convert_to_dataset(X_train, y_train)
     dataset_val = model.convert_to_dataset(X_test, y_test)
@@ -66,7 +66,7 @@ def build_and_test_vgg16(pretrain_model_file, trained_model_path, **kwargs):
 
     print("\n\n#### TESTING FLAG TRAIN START ####\n\n")
     
-    model.train(train_data=dataset_train, validation_data=dataset_val, epochs=1)
+    model.train(train_data=dataset_train, validation_data=dataset_val, epochs=5)
 
     print("\n\n#### TESTING FLAG TRAIN DONE ####\n\n")
     
@@ -95,7 +95,7 @@ def load_gold_and_test_vgg16(modelFile, **kwargs):
 
     #download and preprocess test data
     df = pd.read_csv(CSV_PATH)
-    _, X_test, _, y_test = train_test_split(df['image_path'], model.label_encoder.transform(df['label']), test_size=0.33, random_state=42)
+    _, X_test, _, y_test = train_test_split(df['image_path'], df['label'], test_size=0.33, random_state=42)
     dataset_val = model.convert_to_dataset(X_test, y_test)
 
     #Compile and evaluate
@@ -118,8 +118,12 @@ def choose_best_model(gold_file, candidate_file, **kwargs):
     ti = kwargs['ti']
 
     #Get scores
-    candidate_score = eval(str(ti.xcom_pull(key="candidate_accuracy", task_ids=['VGG16_build_and_test'])))
-    gold_score = eval(str(ti.xcom_pull(key="gold_accuracy", task_ids=['VGG16_Gold_test'])))
+    # candidate_score = eval(str(ti.xcom_pull(key="candidate_accuracy", task_ids=['VGG16_build_and_test'])))
+    # gold_score = eval(str(ti.xcom_pull(key="gold_accuracy", task_ids=['VGG16_Gold_test'])))
+
+    candidate_score = ti.xcom_pull(key="candidate_accuracy", task_ids='VGG16_build_and_test')
+    gold_score = ti.xcom_pull(key="gold_accuracy", task_ids='VGG16_Gold_test')
+
     
     #Choose the best model
     if candidate_score > gold_score:
