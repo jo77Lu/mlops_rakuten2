@@ -40,6 +40,10 @@ jobs:
     - name: Start API and run tests with Docker Compose
       run: docker-compose -f api/docker-compose.yml up --abort-on-container-exit --build
 
+
+    - name: List running containers
+      run: docker ps
+
   
     - name: Copy the HTML test report from the test container
       run: docker cp $(docker-compose ps -q test):/app/report.html report.html
