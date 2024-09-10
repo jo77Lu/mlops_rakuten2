@@ -38,7 +38,7 @@ jobs:
 
   
     - name: Start API and run tests with Docker Compose
-      run: docker-compose -f api/docker-compose.yml up --abort-on-container-exit --build
+      run: docker-compose -f docker-compose.yml up --abort-on-container-exit --build
 
   
     - name: Copy the HTML test report from the test container
