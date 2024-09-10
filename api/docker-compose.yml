@@ -3,7 +3,7 @@ version: '3.8'
 services:
   api:
     build:
-      context: ./api
+      context: .
       dockerfile: Dockerfile
     ports:
       - "80:80"
@@ -19,7 +19,7 @@ services:
 
   test:
     build:
-      context: ./api
+      context: .
       dockerfile: Dockerfile.app_basis
     depends_on:
       api:
