@@ -35,35 +35,27 @@ jobs:
 
     - name: List files in repository
       run: ls -R
-      
-    - name: Grant execution rights to script
-      run: chmod +x api/wait_for_it.sh
 
-    - name: Start API with Docker Compose
-      run: docker-compose -f api/docker-compose.yml up -d --build api
+  
+    - name: Start API and run tests with Docker Compose
+      run: docker-compose -f api/docker-compose.yml up --abort-on-container-exit --build
 
-    - name: Show Docker Compose logs
-      run: docker-compose -f api/docker-compose.yml logs --tail="all" api
+  
+    - name: Copy the HTML test report from the test container
+      run: docker cp $(docker-compose ps -q test):/app/report.html report.html
 
-    - name: List running Docker containers
-      run: docker ps -a
-
-    # - name: Wait for API to be ready
-    #   run: app/wait_for_it.sh localhost:80 -t 120
-
-    - name: Run tests and generate HTML report
-      run: pytest api/tests/ --html=report.html
-
+  
     - name: Upload HTML report
       uses: actions/upload-artifact@v2
       with:
         name: pytest-html-report
         path: report.html
 
+  
     - name: Display part of HTML report in the log
       run: |
         echo "Displaying last 100 lines of HTML report:"
-        tail -n 100 report.html
+        tail -n 1000 report.html
 
     - name: Stop Docker Compose services
       run: docker-compose down
