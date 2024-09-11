@@ -28,4 +28,4 @@ services:
       - RUNNING_IN_DOCKER=true
     volumes:
       - ./api/tests:/app/tests
-    command: sh -c "pytest tests/ --html=report.html && tail -n 1000 report.html"
+    command: sh -c "ls -R /app/tests && pytest /app/tests/ --html=report.html && tail -n 1000 report.html"
