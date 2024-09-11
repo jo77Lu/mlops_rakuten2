@@ -10,6 +10,8 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
     command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80"]
+    volumes:
+      - ./:/app/
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 20s
@@ -27,5 +29,5 @@ services:
     environment:
       - RUNNING_IN_DOCKER=true
     volumes:
-      - ./api/tests:/app/tests
-    command: sh -c "ls -R /app/tests && pytest /app/tests/ --html=report.html && tail -n 1000 report.html"
+      - ./:/app/
+    command: sh -c "ls -R /app/tests && pytest --html=report.html && tail -n 1000 report.html"
