@@ -12,9 +12,15 @@ RUN pip install --no-cache-dir -r requirements_api.txt
 COPY main.py /app/main.py
 COPY pretrain_models /app/pretrain_models
 COPY models_api /app/models_api
-COPY testData/ /app/testData
+COPY testData /app/testData
 COPY tests/ /app/tests
-
+COPY tests/app_basis/ /app/app_basis
+COPY tests/app_basis/test_app_basis /app/app_basis/test_app_basis
+COPY tests/app_basis/data/mock_fine_tune.csv /app/tests/data/data/mock_fine_tune.csv
+COPY tests/app_basis/data/mock_evaluate_missing_filepath.csv /app/tests/data/mock_evaluate_missing_filepath.csv
+COPY tests/app_basis/data/mock_evaluate_missing_labels.csv /app/tests/data/mock_evaluate_missing_labels.csv
+COPY tests/app_basis/data/mock_image.jpg /app/tests/data/mock_image.jpg
+COPY tests/app_basis/data/mock_text.txt /app/tests/data/mock_text.txt
 
 CMD ["sh", "-c", "pytest tests/app_basis/test_app_basis.py | tee tests/app_basis/test_app_basis.log"]
 
