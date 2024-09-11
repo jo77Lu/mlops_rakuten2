@@ -13,9 +13,7 @@ COPY main.py /app/main.py
 COPY pretrain_models /app/pretrain_models
 COPY models_api /app/models_api
 COPY testData /app/testData
-COPY tests /app/tests/
-COPY tests/app_basis /app/tests/app_basis
-COPY tests/app_basis/data /app/tests/app_basis/data
+COPY tests/* /app/tests/*
 
 CMD ["sh", "-c", "pytest tests/app_basis/test_app_basis.py | tee tests/app_basis/test_app_basis.log"]
 
