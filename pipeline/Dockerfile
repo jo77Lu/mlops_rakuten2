@@ -1,6 +1,20 @@
-FROM apache/airflow:2.8.1
+FROM docker.io/apache/airflow:latest-python3.9
 COPY requirementsDockerImage.txt /
 RUN pip install --no-cache-dir "apache-airflow==${AIRFLOW_VERSION}" -r /requirementsDockerImage.txt
+
+# Install Docker CLI
+USER root
+RUN apt-get update && \
+    apt-get install -y docker.io && \
+    apt-get clean
+
+# Switch back to airflow user
+USER airflow
+
+# Install Docker SDK for Python
+RUN pip install docker
+
+
 
 # # Use the official Airflow image as the base image
 # FROM apache/airflow:2.8.1
