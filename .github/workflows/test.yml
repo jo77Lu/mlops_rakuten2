@@ -39,13 +39,13 @@ jobs:
     - name: Start API and run tests with Docker Compose
       run: docker-compose -f api/docker-compose.yml up --abort-on-container-exit --build
       continue-on-error: true
-
-    - name: Check logs on the API
-      run:  docker-compose -f api/docker-compose.yml logs api
-      if: always()
-
+      
     - name: Copy the HTML test report from the test container
-      run: docker cp $(docker-compose ps -q test):/app/report.html report.html
+      run: docker cp $(docker-compose -f api/docker-compose.yml ps -q test):/app/report.html report.html
+
+    - name: List running containers
+      run: docker ps
+      if: always()
   
     - name: Upload HTML report
       uses: actions/upload-artifact@v3
@@ -58,10 +58,6 @@ jobs:
         echo "Displaying last 100 lines of HTML report:"
         tail -n 1000 report.html
 
-    - name: List running containers
-      run: docker ps
-      if: always()
-
     - name: Stop Docker Compose services
-      run: docker-compose down
+      run: docker-compose -f api/docker-compose.yml down
       if: always()
