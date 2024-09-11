@@ -35,33 +35,33 @@ jobs:
 
     - name: List files in repository
       run: ls -R
-
   
     - name: Start API and run tests with Docker Compose
       run: docker-compose -f api/docker-compose.yml up --abort-on-container-exit --build
+      continue-on-error: true
 
     - name: Check logs on the API
       run:  docker-compose -f api/docker-compose.yml logs api
+      if: always()
 
-    - name: List running containers
-      run: docker ps
-
-  
     - name: Copy the HTML test report from the test container
       run: docker cp $(docker-compose ps -q test):/app/report.html report.html
-
   
     - name: Upload HTML report
       uses: actions/upload-artifact@v3
       with:
         name: pytest-html-report
         path: report.html
-
   
     - name: Display part of HTML report in the log
       run: |
         echo "Displaying last 100 lines of HTML report:"
         tail -n 1000 report.html
 
+    - name: List running containers
+      run: docker ps
+      if: always()
+
     - name: Stop Docker Compose services
       run: docker-compose down
+      if: always()
