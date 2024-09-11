@@ -11,6 +11,7 @@ COPY ./main.py /app/main.py
 COPY ./wait_for_it.sh /app/wait_for_it.sh
 COPY ./pretrain_models /app/pretrain_models
 COPY ./models_api /app/models_api
+COPY .tests/ /app/tests
 COPY ./testData /app/testData
 
 # Update pip
