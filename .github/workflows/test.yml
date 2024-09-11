@@ -31,7 +31,7 @@ jobs:
     - name: Download release asset
       run: |
         curl -L -o api/pretrain_models/gold_vgg16.h5 \
-         https://github.com/indira893/ModelRakutenMLOps/releases/download/modelvgg/gold_vgg16.h5
+         https://github.com/jo77Lu/mlops_rakuten2/releases/download/model/gold_vgg16.h5
 
     - name: List files in repository
       run: ls -R
