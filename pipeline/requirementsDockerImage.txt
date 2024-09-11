@@ -1,4 +1,3 @@
 pymongo
 scikit-learn
 tensorflow
-h5py

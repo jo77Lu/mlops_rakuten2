@@ -1,14 +1,14 @@
 import os
 import shutil
 import sys
-import h5py
 from datetime import datetime, timedelta
-
 import pandas as pd
-import tensorflow
+from airflow.utils.task_group import TaskGroup
 from airflow import DAG
 from airflow.operators.python import PythonOperator
+from airflow.operators.bash_operator import BashOperator
 from airflow.sensors.filesystem import FileSensor
+from airflow.models import Variable
 from sklearn.model_selection import train_test_split
 
 # Add models path to sys.path
@@ -23,11 +23,10 @@ TRAINED_MODEL_PATH = "/opt/airflow/pretrain_models"
 PRETRAIN_MODEL_FILE = f"{TRAINED_MODEL_PATH}/gold_vgg16.h5"
 CANDIDATE_MODEL_FILE = f"{TRAINED_MODEL_PATH}/candidate_vgg16.h5"
 
-# def get_keras_version(model_file):
-#     with h5py.File(model_file, 'r') as f:
-#         keras_version = f.attrs.get('keras_version')
-#         backend = f.attrs.get('backend')
-#         return keras_version, backend
+dockerhub_username = Variable.get("DOCKERHUB_USERNAME")
+dockerhub_token = Variable.get("DOCKERHUB_TOKEN")
+
+api_directory = "/opt/airflow/api"
 
 def prepare_csv_file(imagesPath, dataFile, labelFile, n_files=None):
     model = VGG16Model(input_shape=IMAGE_SHAPE, num_classes=NUM_CLASSES, include_top=False)
@@ -43,8 +42,7 @@ def build_and_test_vgg16(pretrain_model_file, trained_model_path, **kwargs):
             trained_model_path (str): Path to save trained model
             **kwargs: Additional arguments        
     """
-    # print(f"FILE VERSION: {get_keras_version(pretrain_model_file)}")
-    # print(f"KERAS Version: {tensorflow.keras.__version__}")
+
 
     ti = kwargs['ti']
     # model = VGG16Model(input_shape=IMAGE_SHAPE, num_classes=NUM_CLASSES, include_top=False)
@@ -66,7 +64,7 @@ def build_and_test_vgg16(pretrain_model_file, trained_model_path, **kwargs):
 
     print("\n\n#### TESTING FLAG TRAIN START ####\n\n")
     
-    model.train(train_data=dataset_train, validation_data=dataset_val, epochs=5)
+    model.train(train_data=dataset_train, validation_data=dataset_val, epochs=1)
 
     print("\n\n#### TESTING FLAG TRAIN DONE ####\n\n")
     
@@ -198,7 +196,30 @@ with DAG(
             "candidate_file": CANDIDATE_MODEL_FILE
         }
     )
+    with TaskGroup("docker_tasks") as docker_tasks:
+        docker_login_task = BashOperator(
+        task_id='docker_login',
+        bash_command=f'echo {dockerhub_token} | docker login -u {dockerhub_username} --password-stdin',
+        )
+        
+        build_image_task = BashOperator(
+        task_id='build_docker_image',
+        bash_command=f'cd {api_directory} && docker build -t joan77/test_api:latest .',
+        )
+
+        push_image_task = BashOperator(
+            task_id='push_docker_image',
+            bash_command='docker push joan77/test_api:latest',
+        )
+
+        docker_login_task >> build_image_task >> push_image_task #>> deploy_image_task
+
+        # deploy_image_task = BashOperator(
+        #     task_id='deploy_docker_image',
+        #     bash_command='kubectl set image deployment/myapi myapi=myregistry/myapi:latest',
+        # )
 
     # Task dependencies
     my_sensor >> prepare_file >> [vgg16_build_and_test, vgg16_load_gold_and_test]
     [vgg16_build_and_test, vgg16_load_gold_and_test] >> choose_best_model
+    choose_best_model >> docker_tasks

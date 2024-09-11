@@ -72,6 +72,8 @@ x-airflow-common: &airflow-common
     - ../data/raw:/app/rawData
     - ../data/clean:/app/clean
     - ../models:/opt/airflow/dags/models
+    - ../api:/opt/airflow/api
+    - /var/run/docker.sock:/var/run/docker.sock # Mount Docker socket
   user: "${AIRFLOW_UID:-50000}:${AIRFLOW_GID:-50000}"
   depends_on:
     redis:
