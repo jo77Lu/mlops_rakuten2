@@ -35,29 +35,63 @@ jobs:
 
     - name: List files in repository
       run: ls -R
-  
-    - name: Start API and run tests with Docker Compose
-      run: docker-compose -f api/docker-compose.yml up --abort-on-container-exit --build
-      continue-on-error: true
-      
-    - name: Copy the HTML test report from the test container
-      run: docker cp $(docker-compose -f api/docker-compose.yml ps -q test):/app/report.html report.html
 
-    - name: List running containers
-      run: docker ps
-      if: always()
-  
-    - name: Upload HTML report
+    - name: Build and Run Docker Compose
+      run: docker-compose -f api/docker-compose.yml up -d --build
+
+    - name: Wait for API service to become healthy
+      run: |
+        timeout 300 bash -c 'until [ "$(docker inspect -f {{.State.Health.Status}} api)" == "healthy" ]; do
+          echo "Waiting for the API to be healthy..."
+          sleep 20
+        done'
+      shell: bash
+
+    - name: Run tests in test container
+      run: |
+        docker-compose -f api/docker-compose.yml exec test sh -c "ls -R /app/tests && pytest --html=/app/reports/report.html && tail -n 1000 /app/reports/report.html"
+
+    - name: Copy report.html to GitHub Actions workspace
+      run: |
+        docker cp $(docker-compose -f api/docker-compose.yml ps -q test):/app/reports/report.html ./reports/report.html
+
+    - name: Upload HTML Report as Artifact
       uses: actions/upload-artifact@v3
       with:
-        name: pytest-html-report
-        path: report.html
-  
-    - name: Display part of HTML report in the log
-      run: |
-        echo "Displaying last 100 lines of HTML report:"
-        tail -n 1000 report.html
+        name: pytest-report
+        path: ./reports/report.html
 
-    - name: Stop Docker Compose services
-      run: docker-compose -f api/docker-compose.yml down
-      if: always()
+    - name: Commit and Push report.html
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git add reports/report.html
+        git commit -m "Add test report"
+        git push
+  
+    # - name: Start API and run tests with Docker Compose
+    #   run: docker-compose -f api/docker-compose.yml up --abort-on-container-exit --build
+    #   continue-on-error: true
+      
+    # - name: Copy the HTML test report from the test container
+    #   run: docker cp $(docker-compose -f api/docker-compose.yml ps -q test):/app/report.html report.html
+
+    # - name: List running containers
+    #   run: docker ps
+    #   if: always()
+  
+    # - name: Upload HTML report
+    #   uses: actions/upload-artifact@v3
+    #   with:
+    #     name: pytest-html-report
+    #     path: report.html
+  
+    # - name: Display part of HTML report in the log
+    #   run: |
+    #     echo "Displaying last 100 lines of HTML report:"
+    #     tail -n 1000 report.html
+
+    # - name: Stop Docker Compose services
+    #   run: docker-compose -f api/docker-compose.yml down
+    #   if: always()
+

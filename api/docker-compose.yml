@@ -13,7 +13,7 @@ services:
     volumes:
       - ./:/app/
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
       interval: 60s
       timeout: 30s
       retries: 10
@@ -30,4 +30,5 @@ services:
       - RUNNING_IN_DOCKER=true
     volumes:
       - ./:/app/
-    command: sh -c "ls -R /app/tests && pytest --html=report.html && tail -n 1000 report.html"
+      - ./reports:/app/reports
+    command: sh -c "ls -R /app/tests && pytest --html=/app/reports/report.html && tail -n 1000 /app/reports/report.html"
