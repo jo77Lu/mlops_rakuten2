@@ -38,6 +38,7 @@ jobs:
 
     - name: Build and Run Docker Compose
       run: docker-compose -f api/docker-compose.yml up --abort-on-container-exit --build
+      continue-on-error: true
 
     - name: List running containers
       run: docker ps

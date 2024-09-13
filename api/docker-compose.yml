@@ -24,11 +24,11 @@ services:
       context: ./
       dockerfile: Dockerfile.app_basis
     depends_on:
-      - api
-        # condition: service_healthy
+      api:
+        condition: service_started
     environment:
       - RUNNING_IN_DOCKER=true
+    command: sh -c "ls -R /app/tests && mkdir /app/reports && pytest --html=/app/reports/report.html && tail -n 1000 /app/reports/report.html"
     volumes:
       - ./:/app/
       - ./reports:/app/reports
-    command: sh -c "ls -R /app/tests && pytest --html=/app/reports/report.html && tail -n 1000 /app/reports/report.html"
