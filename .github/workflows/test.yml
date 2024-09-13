@@ -39,9 +39,9 @@ jobs:
     - name: Build and Run Docker Compose
       run: docker-compose -f api/docker-compose.yml up -d --build
 
-    - name: Show Docker Compose logs
-      run: docker-compose -f api/docker-compose.yml logs api
-      continue-on-error: true
+    - name: List running containers
+      run: docker ps
+      if: always()
 
     - name: Wait for API service to become healthy
       run: |
