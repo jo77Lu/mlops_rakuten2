@@ -37,22 +37,22 @@ jobs:
       run: ls -R
 
     - name: Build and Run Docker Compose
-      run: docker-compose -f api/docker-compose.yml up -d --build
+      run: docker-compose -f api/docker-compose.yml up --abort-on-container-exit --build
 
     - name: List running containers
       run: docker ps
       if: always()
 
-    - name: Wait for API service to become healthy
-      run: |
-        timeout 300 bash -c 'until [ "$(docker inspect -f {{.State.Health.Status}} $(docker-compose -f api/docker-compose.yml ps -q api))" == "healthy" ]; do
-          echo "Current health status: $(docker inspect -f {{.State.Health.Status}} $(docker-compose -f api/docker-compose.yml ps -q api))"
-          echo "Waiting for the API to be healthy..."
-          sleep 30
-        done'
-      shell: bash
-      continue-on-error: true
-
+    # - name: Wait for API service to become healthy
+    #   run: |
+    #     timeout 300 bash -c 'until [ "$(docker inspect -f {{.State.Health.Status}} $(docker-compose -f api/docker-compose.yml ps -q api))" == "healthy" ]; do
+    #       echo "Current health status: $(docker inspect -f {{.State.Health.Status}} $(docker-compose -f api/docker-compose.yml ps -q api))"
+    #       echo "Waiting for the API to be healthy..."
+    #       sleep 30
+    #     done'
+    #   shell: bash
+    #   continue-on-error: true
+    
     - name: Run tests in test container
       run: |
         docker-compose -f api/docker-compose.yml exec test sh -c "mkdir -p /app/reports && ls -R /app/tests && pytest --html=/app/reports/report.html && tail -n 1000 /app/reports/report.html"
