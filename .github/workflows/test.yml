@@ -69,15 +69,15 @@ jobs:
         name: pytest-report
         path: ./reports/report.html
 
-    - name: Commit and Push report.html
-      env:
-        TOKEN: ${{ secrets.rakuten2 _gitAction}}
-      run: |
-        git config --global user.name "github-actions[bot]"
-        git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        git add reports/report.html
-        git commit -m "Add test report"
-        git push
+    # - name: Commit and Push report.html
+    #   env:
+    #     TOKEN: ${{ secrets.rakuten2 _gitAction}}
+    #   run: |
+    #     git config --global user.name "github-actions[bot]"
+    #     git config --global user.email "github-actions[bot]@users.noreply.github.com"
+    #     git add reports/report.html
+    #     git commit -m "Add test report"
+    #     git push
 
     - name: Stop Docker Compose services
       run: docker-compose -f api/docker-compose.yml down
