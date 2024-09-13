@@ -1,0 +1,85 @@
+name: CI - Run API and Tests
+
+on:
+  push:
+    branches:
+      - main
+      - feature/unit_tests_fixed
+  pull_request:
+    branches:
+      - main
+      - feature/unit_tests_fixed
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: '3.9'
+
+    - name: Install Docker Compose
+      run: |
+        sudo apt-get update
+        sudo apt-get install docker-compose -y
+
+    - name: Download release asset
+      run: |
+        curl -L -o api/pretrain_models/gold_vgg16.h5 \
+         https://github.com/jo77Lu/mlops_rakuten2/releases/download/model/gold_vgg16.h5
+
+    - name: List files in repository
+      run: ls -R
+
+    - name: Build and Run Docker Compose
+      run: docker-compose -f api/docker-compose.yml up --abort-on-container-exit --build
+      continue-on-error: true
+
+    - name: List running containers
+      run: docker ps
+      if: always()
+
+    # - name: Wait for API service to become healthy
+    #   run: |
+    #     timeout 300 bash -c 'until [ "$(docker inspect -f {{.State.Health.Status}} $(docker-compose -f api/docker-compose.yml ps -q api))" == "healthy" ]; do
+    #       echo "Current health status: $(docker inspect -f {{.State.Health.Status}} $(docker-compose -f api/docker-compose.yml ps -q api))"
+    #       echo "Waiting for the API to be healthy..."
+    #       sleep 30
+    #     done'
+    #   shell: bash
+    #   continue-on-error: true
+    
+    - name: Run tests in test container
+      run: |
+        docker-compose -f api/docker-compose.yml exec test
+  
+
+    - name: Copy report.html to GitHub Actions workspace
+      run: |
+        docker cp $(docker-compose -f api/docker-compose.yml ps -q test):/app/reports/report.html ./reports/report.html
+
+    - name: Upload HTML Report as Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: pytest-report
+        path: ./reports/report.html
+
+    # - name: Commit and Push report.html
+    #   env:
+    #     TOKEN: ${{ secrets.rakuten2 _gitAction}}
+    #   run: |
+    #     git config --global user.name "github-actions[bot]"
+    #     git config --global user.email "github-actions[bot]@users.noreply.github.com"
+    #     git add reports/report.html
+    #     git commit -m "Add test report"
+    #     git push
+
+    - name: Stop Docker Compose services
+      run: docker-compose -f api/docker-compose.yml down
+      if: always()
+

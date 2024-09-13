@@ -4,8 +4,15 @@ FROM python:3.9-slim
 # Set the working directory in the container
 WORKDIR /app
 
+COPY ./requirements_api.txt /app/requirements_api.txt
+
 # Copy the current directory contents into the container at /app
-COPY . /app
+COPY ./main.py /app/main.py
+COPY ./wait_for_it.sh /app/wait_for_it.sh
+COPY ./pretrain_models /app/pretrain_models
+COPY ./models_api /app/models_api
+COPY ./tests/ /app/tests
+COPY ./testData /app/testData
 
 # Update pip
 RUN pip install --upgrade pip
