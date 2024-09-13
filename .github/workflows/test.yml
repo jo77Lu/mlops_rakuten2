@@ -70,6 +70,8 @@ jobs:
         path: ./reports/report.html
 
     - name: Commit and Push report.html
+      env:
+        TOKEN: ${{ secrets.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 }}
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
