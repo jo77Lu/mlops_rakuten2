@@ -71,31 +71,13 @@ jobs:
 
     - name: Commit and Push report.html
       env:
-        TOKEN: ${{ secrets.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 }}
+        TOKEN: ${{ secrets.rakuten2 _gitAction}}
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
         git add reports/report.html
         git commit -m "Add test report"
         git push
-  
-    # - name: Start API and run tests with Docker Compose
-    #   run: docker-compose -f api/docker-compose.yml up --abort-on-container-exit --build
-    #   continue-on-error: true
-      
-    # - name: Copy the HTML test report from the test container
-    #   run: docker cp $(docker-compose -f api/docker-compose.yml ps -q test):/app/report.html report.html
-
-    # - name: List running containers
-    #   run: docker ps
-    #   if: always()
-  
-    # - name: Upload HTML report
-    #   uses: actions/upload-artifact@v3
-    #   with:
-    #     name: pytest-html-report
-    #     path: report.html
-  
 
     - name: Stop Docker Compose services
       run: docker-compose -f api/docker-compose.yml down
