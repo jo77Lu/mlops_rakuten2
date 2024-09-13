@@ -40,7 +40,7 @@ jobs:
       run: docker-compose -f api/docker-compose.yml up -d --build
 
     - name: Show Docker Compose logs
-      run: docker-compose -f api/docker-compose.yml logs --tail="all" api
+      run: docker-compose -f api/docker-compose.yml logs api
       continue-on-error: true
 
     - name: Wait for API service to become healthy
