@@ -28,7 +28,7 @@ services:
         condition: service_started
     environment:
       - RUNNING_IN_DOCKER=true
-    command: sh -c "ls -R /app/tests && mkdir /app/reports && pytest --html=/app/reports/report.html && tail -n 1000 /app/reports/report.html"
+    command: sh -c "ls -R /app/tests && pytest --html=/app/reports/report.html && tail -n 1000 /app/reports/report.html"
     volumes:
       - ./:/app/
       - ./reports:/app/reports
