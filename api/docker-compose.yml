@@ -24,8 +24,8 @@ services:
       context: ./
       dockerfile: Dockerfile.app_basis
     depends_on:
-      api:
-        condition: service_healthy
+      - api
+        # condition: service_healthy
     environment:
       - RUNNING_IN_DOCKER=true
     volumes:
