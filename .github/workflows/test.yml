@@ -49,8 +49,7 @@ jobs:
 
     - name: Run tests in test container
       run: |
-        docker-compose -f api/docker-compose.yml exec test sh -c "ls -R /app/tests && pytest --html=/app/reports/report.html && tail -n 1000 /app/reports/report.html"
-      if: always()
+        docker-compose -f api/docker-compose.yml exec test sh -c "mkdir -p /app/reports && ls -R /app/tests && pytest --html=/app/reports/report.html && tail -n 1000 /app/reports/report.html"
 
     - name: Copy report.html to GitHub Actions workspace
       run: |
