@@ -37,7 +37,11 @@ jobs:
       run: ls -R
 
     - name: Build and Run Docker Compose
-      run: docker-compose -f api/docker-compose.yml up --abort-on-container-exit -d --build
+      run: docker-compose -f api/docker-compose.yml up -d --build
+
+    - name: Show Docker Compose logs
+      run: docker-compose -f api/docker-compose.yml logs --tail="all" api
+      continue-on-error: true
 
     - name: Wait for API service to become healthy
       run: |
