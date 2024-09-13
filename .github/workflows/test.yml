@@ -50,6 +50,7 @@ jobs:
     - name: Run tests in test container
       run: |
         docker-compose -f api/docker-compose.yml exec test sh -c "ls -R /app/tests && pytest --html=/app/reports/report.html && tail -n 1000 /app/reports/report.html"
+      if: always()
 
     - name: Copy report.html to GitHub Actions workspace
       run: |
@@ -91,7 +92,7 @@ jobs:
     #     echo "Displaying last 100 lines of HTML report:"
     #     tail -n 1000 report.html
 
-    # - name: Stop Docker Compose services
-    #   run: docker-compose -f api/docker-compose.yml down
-    #   if: always()
+    - name: Stop Docker Compose services
+      run: docker-compose -f api/docker-compose.yml down
+      if: always()
 
